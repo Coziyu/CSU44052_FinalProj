@@ -41,6 +41,5 @@
 *.dwo
 
 
-external/*
 build/*
 .cache/*
