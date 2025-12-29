@@ -2,6 +2,7 @@
 #define CAMERA_HPP
 
 #include "glm/glm.hpp"
+#include "Window.hpp"
 
 // Implementation based off of LearnOpenGL.com's Camera class
 
@@ -61,12 +62,14 @@ class Camera {
         * @brief Handles keyboard input to move the camera.
         * This is to be added as a callback to the window
         */
-        void handleKeyboardInput(DIRECTIONS direction, float deltaTime);
+        void handleKeyboardInput(DIRECTIONS direction, const float deltaTime);
         /**
         * @brief Handles mouse movement to rotate the camera.
         * This is to be added as a callback to the window
         */
         void handleMouseInput(float xOffset, float yOffset, bool constrainPitch = true);
+
+        void processInput(Window& window, const float deltaTime);
 
     private:
         /**
@@ -74,6 +77,12 @@ class Camera {
          * This is to be whenever the camera's parameters mutate.
          */
         void updateCameraVectors();
+
+        void glfwKeyCallback(Window* window, int key, int scancode, int action, int mods);
+        void glfwMouseCallback(Window* window, double xpos, double ypos);
+        void whenKeyDown(int key, int scancode, int action, int mods);
+        // TODO: Note the use of when vs on prefix
+        // The former is for event handling, the latter is for state updating
 };
 
 #endif // CAMERA_HPP

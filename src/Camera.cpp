@@ -1,5 +1,4 @@
 #include "Camera.hpp"
-#include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 Camera::Camera(
@@ -21,7 +20,18 @@ glm::mat4 Camera::getViewMatrix() const {
     return glm::lookAt(position, position + front, top);
 }
 
-void Camera::handleKeyboardInput(DIRECTIONS direction, float deltaTime) {
+void Camera::processInput(Window& window, const float deltaTime) {
+    if (window.isKeyPressed(GLFW_KEY_W))
+        this->handleKeyboardInput(FORWARD, deltaTime);
+    if (window.isKeyPressed(GLFW_KEY_S))
+        this->handleKeyboardInput(BACKWARD, deltaTime);
+    if (window.isKeyPressed(GLFW_KEY_A))
+        this->handleKeyboardInput(LEFT, deltaTime);
+    if (window.isKeyPressed(GLFW_KEY_D))
+        this->handleKeyboardInput(RIGHT, deltaTime);
+}
+
+void Camera::handleKeyboardInput(DIRECTIONS direction, const float deltaTime) {
     float speed = movementSpeed * deltaTime;
     if (direction == FORWARD)
         position += front * speed;
@@ -61,3 +71,22 @@ void Camera::updateCameraVectors() {
     right      = glm::normalize(glm::cross(front, worldUp));
     top      = glm::normalize(glm::cross(right, front));
 }
+
+// Note: We register callbacks for methods that changes state only.
+// Otherwise, we simply use polling methods in main loop.
+void Camera::glfwKeyCallback(Window* window, int key, int scancode, int action, int mods){
+    Camera *cam_win = static_cast<Camera *>(glfwGetWindowUserPointer(window->window));
+    cam_win->whenKeyDown(key, scancode, action, mods);
+}
+
+void Camera::glfwMouseCallback(Window* window, double xpos, double ypos){
+    Camera *cam_win = static_cast<Camera *>(glfwGetWindowUserPointer(window->window));
+    cam_win->handleMouseInput(xpos, ypos, true);
+}
+
+void Camera::whenKeyDown(int key, int scancode, int action, int mods){
+    // Placeholder for future key handling
+    // TODO: Populate
+
+}
+
