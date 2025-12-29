@@ -3,10 +3,10 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 Camera::Camera(
-            vec3 startPosition, 
-            vec3 up, 
+            glm::vec3 startPosition, 
+            glm::vec3 up, 
             float startYaw,
-            float startPitch) : front(vec3(0.0f, 0.0f, -1.0f)), 
+            float startPitch) : front(glm::vec3(0.0f, 0.0f, -1.0f)), 
     movementSpeed(DEFAULT::SPEED),
     mouseSensitivity(DEFAULT::SENSITIVITY)
 {
@@ -17,7 +17,7 @@ Camera::Camera(
     updateCameraVectors();
 };
 
-mat4 Camera::getViewMatrix() {
+glm::mat4 Camera::getViewMatrix() const {
     return glm::lookAt(position, position + front, top);
 }
 

@@ -17,7 +17,6 @@ enum DIRECTIONS {
     RIGHT
 };
 
-using namespace glm;
 
 // Default camera values
 namespace DEFAULT {
@@ -30,11 +29,11 @@ namespace DEFAULT {
 class Camera {
     public:
         // camera attributes
-        vec3 position;
-        vec3 front;
-        vec3 top;
-        vec3 right;
-        vec3 worldUp;
+        glm::vec3 position;
+        glm::vec3 front;
+        glm::vec3 top;
+        glm::vec3 right;
+        glm::vec3 worldUp;
 
         // euler angles
         float yaw;
@@ -44,13 +43,19 @@ class Camera {
         float movementSpeed;
         float mouseSensitivity;
 
+        /**
+         * @brief Construct a new Camera object
+         * 
+         * @param startPosition starting position of the camera
+         * @param up world up vector
+         */
         Camera(
-            vec3 startPosition = vec3(0.0f, 0.0f, 0.0f), 
-            vec3 up = vec3(0.0f, 1.0f, 0.0f), 
+            glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f), 
+            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
             float startYaw = DEFAULT::YAW,
             float startPitch = DEFAULT::PITCH
         );
-        mat4 getViewMatrix();
+        glm::mat4 getViewMatrix() const;
         
         /**
         * @brief Handles keyboard input to move the camera.
