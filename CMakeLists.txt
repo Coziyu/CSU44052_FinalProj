@@ -23,6 +23,7 @@ include_directories(
 add_executable(wonderland
 	src/main.cpp
 	src/Camera.cpp
+	src/Window.cpp
 )
 target_link_libraries(wonderland
 	${OPENGL_LIBRARY}
