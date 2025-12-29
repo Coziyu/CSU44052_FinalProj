@@ -13,7 +13,8 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" OFF) # Required to avoid
 add_subdirectory(external)
 
 include_directories(
-	external/glfw-3.1.2/include/
+	# external/glfw-3.1.2/include/
+	external/glfw-3.3/include/
 	external/glm-0.9.7.1/
 	external/glad-opengl-3.3/include/
 	external/tinygltf-2.9.3/
