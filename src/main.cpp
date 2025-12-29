@@ -6,27 +6,46 @@
 
 #include "Cube.hpp"
 
-
-
-
 int main() {
+    Camera camera(
+        glm::vec3(300.0f, 300.0f, 300.0f), 
+        glm::vec3(0.0f, 1.0f, 0.0f), 
+        glm::vec3(0.0f, 100.0f, 0.0f) - glm::vec3(300.0f, 300.0f, 300.0f)
+    );
+    
     Window window(1366, 768, "Wonderland");
     window.initialize();
-    Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
+    
+    window.registerMouseCallback([&camera](double x, double y) {
+        camera.handleMouseInput(x, y);
+    });
 
-    Box testBox;
-    testBox.initialize(glm::vec3(0, 100, 0), glm::vec3(10, 10, 10));
+	// A coordinate system 
+    AxisXYZ debugAxes;
+    debugAxes.initialize();
+
+	// A default box
+	Box mybox;
+	mybox.initialize(
+        glm::vec3(0, 100, 0),  // translation
+        glm::vec3(30, 30, 30)  // scale
+    );
+    
+
+
     float deltaTime = 0.0f;
     float lastTime = 0.0f;
+
     do {
         float currTime = (glfwGetTime());
         deltaTime = currTime - lastTime;
         lastTime = currTime;
         
         camera.processInput(window, deltaTime);
+        window.processInput();
         window.recomputeFPS(deltaTime);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glm::mat4 view = camera.getViewMatrix();
@@ -36,14 +55,20 @@ int main() {
             0.1f, 
             1000.0f
         );
-        testBox.render(projection * view);
+
+        glEnable(GL_DEPTH_TEST);
+	    glEnable(GL_CULL_FACE);
+
+        debugAxes.render(projection * view);
+        mybox.render(projection * view);
+
 
         window.swapBuffers();
         window.pollEvents();
     } 
     while (!window.shouldClose());
 
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << "Exiting.\n";
     return 0;
 }
 

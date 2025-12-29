@@ -21,9 +21,9 @@ enum DIRECTIONS {
 
 // Default camera values
 namespace DEFAULT {
-    const float YAW         = -90.0f;
+    const float YAW         =  0.0f;
     const float PITCH       =  0.0f;
-    const float SPEED       =  2.5f;
+    const float SPEED       =  100.0f;
     const float SENSITIVITY =  0.1f;
 }
 
@@ -44,6 +44,10 @@ class Camera {
         float movementSpeed;
         float mouseSensitivity;
 
+        // mouse
+        double lastMouseX;
+        double lastMouseY;
+
         /**
          * @brief Construct a new Camera object
          * 
@@ -53,8 +57,7 @@ class Camera {
         Camera(
             glm::vec3 startPosition = glm::vec3(0.0f, 0.0f, 0.0f), 
             glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
-            float startYaw = DEFAULT::YAW,
-            float startPitch = DEFAULT::PITCH
+            glm::vec3 startFront = glm::vec3(0.0f, 0.0f, 1.0f)
         );
         glm::mat4 getViewMatrix() const;
         
@@ -62,12 +65,12 @@ class Camera {
         * @brief Handles keyboard input to move the camera.
         * This is to be added as a callback to the window
         */
-        void handleKeyboardInput(DIRECTIONS direction, const float deltaTime);
+        void handleMovement(DIRECTIONS direction, const float deltaTime);
         /**
         * @brief Handles mouse movement to rotate the camera.
         * This is to be added as a callback to the window
         */
-        void handleMouseInput(float xOffset, float yOffset, bool constrainPitch = true);
+        void handleMouseInput(double xOffset, double yOffset);
 
         void processInput(Window& window, const float deltaTime);
 
@@ -78,9 +81,7 @@ class Camera {
          */
         void updateCameraVectors();
 
-        void glfwKeyCallback(Window* window, int key, int scancode, int action, int mods);
-        void glfwMouseCallback(Window* window, double xpos, double ypos);
-        void whenKeyDown(int key, int scancode, int action, int mods);
+        
         // TODO: Note the use of when vs on prefix
         // The former is for event handling, the latter is for state updating
 };
