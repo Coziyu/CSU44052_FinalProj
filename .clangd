@@ -1,5 +1,5 @@
 If:
-    PathExclude: external/*
-
+    PathExclude: [external/*, build/*]
+    
 Index:
     Background: Skip

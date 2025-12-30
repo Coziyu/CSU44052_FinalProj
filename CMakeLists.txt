@@ -18,6 +18,7 @@ include_directories(
 	external/glm-0.9.7.1/
 	external/glad-opengl-3.3/include/
 	external/tinygltf-2.9.3/
+	external/
 	src/
 )
 
@@ -25,6 +26,7 @@ add_executable(wonderland
 	src/main.cpp
 	src/Camera.cpp
 	src/Window.cpp
+	src/Perlin.cpp
 )
 target_link_libraries(wonderland
 	${OPENGL_LIBRARY}

@@ -1,76 +1,70 @@
 #include <iostream>
-#include "Camera.hpp"
-#include "Window.hpp"
 #include <glm/gtc//matrix_transform.hpp>
 
 
+#include "Camera.hpp"
+#include "Window.hpp"
 #include "Cube.hpp"
+#include "Perlin.hpp"
+
 
 int main() {
-    Camera camera(
-        glm::vec3(300.0f, 300.0f, 300.0f), 
-        glm::vec3(0.0f, 1.0f, 0.0f), 
-        glm::vec3(0.0f, 100.0f, 0.0f) - glm::vec3(300.0f, 300.0f, 300.0f)
-    );
-    
-    Window window(1366, 768, "Wonderland");
-    window.initialize();
-    
-    window.registerMouseCallback([&camera](double x, double y) {
-        camera.handleMouseInput(x, y);
-    });
+  Camera camera(glm::vec3(300.0f, 300.0f, 300.0f), glm::vec3(0.0f, 1.0f, 0.0f),
+                glm::vec3(0.0f, 100.0f, 0.0f) -
+                    glm::vec3(300.0f, 300.0f, 300.0f));
 
-	// A coordinate system 
-    AxisXYZ debugAxes;
-    debugAxes.initialize();
+  Window window(1366, 768, "Wonderland");
+  window.initialize();
 
-	// A default box
-	Box mybox;
-	mybox.initialize(
-        glm::vec3(0, 100, 0),  // translation
-        glm::vec3(30, 30, 30)  // scale
-    );
-    
+  window.registerMouseCallback(
+      [&camera](double x, double y) { camera.handleMouseInput(x, y); });
 
+  // A coordinate system
+  AxisXYZ debugAxes;
+  debugAxes.initialize();
 
-    float deltaTime = 0.0f;
-    float lastTime = 0.0f;
+  // A default box
+  Box mybox;
+  mybox.initialize(glm::vec3(0, 100, 0), // translation
+                   glm::vec3(30, 30, 30) // scale
+  );
 
-    do {
-        float currTime = (glfwGetTime());
-        deltaTime = currTime - lastTime;
-        lastTime = currTime;
-        
-        camera.processInput(window, deltaTime);
-        window.processInput();
-        window.recomputeFPS(deltaTime);
+  float deltaTime = 0.0f;
+  float lastTime = 0.0f;
 
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  do {
+    float currTime = (glfwGetTime());
+    deltaTime = currTime - lastTime;
+    lastTime = currTime;
 
-        glm::mat4 view = camera.getViewMatrix();
-        glm::mat4 projection = glm::perspective(
-            glm::radians(45.0f), 
-            static_cast<float>(window.width) / static_cast<float>(window.height), 
-            0.1f, 
-            1000.0f
-        );
+    camera.processInput(window, deltaTime);
+    window.processInput();
+    window.recomputeFPS(deltaTime);
 
-        glEnable(GL_DEPTH_TEST);
-	    glEnable(GL_CULL_FACE);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        debugAxes.render(projection * view);
-        mybox.render(projection * view);
+    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(window.width) / static_cast<float>(window.height),
+        0.1f, 1000.0f);
 
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
-        window.swapBuffers();
-        window.pollEvents();
-    } 
-    while (!window.shouldClose());
+    debugAxes.render(projection * view);
+    mybox.render(projection * view);
 
-    std::cout << "Exiting.\n";
-    return 0;
+    window.swapBuffers();
+    window.pollEvents();
+  } while (!window.shouldClose());
+
+  std::cout << "Exiting.\n";
+
+//   // Test rendering a perlin texture to an image.
+
+//   testRenderPerlinNoise();
+
+  return 0;
 }
-
-
-
