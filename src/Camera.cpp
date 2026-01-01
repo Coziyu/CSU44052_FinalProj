@@ -1,5 +1,8 @@
 #include "Camera.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <GLFW/glfw3.h>
+#include <cmath>
+#include <imgui.h>
 #include <iostream>
 
 Camera::Camera(
@@ -17,6 +20,9 @@ Camera::Camera(
     position = startPosition;
     worldUp = up;
     front = startFront;
+
+    flightMode = false;
+
     updateCameraVectors();
 };
 
@@ -25,30 +31,60 @@ glm::mat4 Camera::getViewMatrix() const {
 }
 
 void Camera::processInput(Window& window, const float deltaTime) {
-    if (window.isKeyPressed(GLFW_KEY_W))
-        this->handleMovement(FORWARD, deltaTime);
-    if (window.isKeyPressed(GLFW_KEY_S))
-        this->handleMovement(BACKWARD, deltaTime);
-    if (window.isKeyPressed(GLFW_KEY_A))
-        this->handleMovement(LEFT, deltaTime);
-    if (window.isKeyPressed(GLFW_KEY_D))
-        this->handleMovement(RIGHT, deltaTime);
+    static int prevCapsState = GLFW_RELEASE;
 
-    if (window.isKeyPressed(GLFW_KEY_TAB)) {
+    float simDeltaTime = deltaTime;
+    if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+        simDeltaTime *= 10.0f;
+    }
+    if (window.isKeyPressed(GLFW_KEY_W))
+        this->handleMovement(FORWARD, simDeltaTime);
+    if (window.isKeyPressed(GLFW_KEY_S))
+        this->handleMovement(BACKWARD, simDeltaTime);
+    if (window.isKeyPressed(GLFW_KEY_A))
+        this->handleMovement(LEFT, simDeltaTime);
+    if (window.isKeyPressed(GLFW_KEY_D))
+        this->handleMovement(RIGHT, simDeltaTime);
+    if (window.isKeyPressed(GLFW_KEY_SPACE))
+        this->handleMovement(UP, simDeltaTime);
+    if (window.isKeyPressed(GLFW_KEY_LEFT_CONTROL))
+        this->handleMovement(DOWN, simDeltaTime);
+    
+    if (window.isKeyReleased(GLFW_KEY_CAPS_LOCK) && prevCapsState == GLFW_PRESS){
+        // Toggle flight mode
+        flightMode = !flightMode;
+        std::cout << "Flight mode: " << (flightMode ? "ON" : "OFF") << "\n";
+    }
+    prevCapsState = window.isKeyPressed(GLFW_KEY_CAPS_LOCK);
+    
+
+    if (window.isKeyPressed(GLFW_KEY_APOSTROPHE)) {
         std::cout << "Camera Position: (" 
                   << position.x << ", " 
                   << position.y << ", " 
                   << position.z << ")\n";
-        std::cout << "Camera yaw: " << yaw << ", pitch: " << pitch << "\n";
-        std::cout << "Camera front: (" 
-                << front.x << ", " 
-                << front.y << ", " 
-                << front.z << ")\n";
-        std::cout << "Camera right: (" 
-                << right.x << ", " 
-                << right.y << ", " 
-                << right.z << ")\n";
     }
+}
+
+void Camera::update(const float deltaTime) {
+    // If flight mode not enabled, physics update
+    if (!flightMode) {
+
+        fallSpeed += DEFAULT::GRAVITY * deltaTime;
+        
+        position.y += fallSpeed > 0 ? fallSpeed * 2 * deltaTime : fallSpeed * deltaTime;
+    }
+    else {
+        resetFallSpeed();
+    }
+}
+
+void Camera::resetFallSpeed() {
+    fallSpeed = 0;
+}
+
+void Camera::setOnGround(bool onGround) { 
+    this->onGround = onGround;
 }
 
 void Camera::handleMovement(DIRECTIONS direction, const float deltaTime) {
@@ -61,20 +97,37 @@ void Camera::handleMovement(DIRECTIONS direction, const float deltaTime) {
         position -= right * speed;
     if (direction == RIGHT)
         position += right * speed;
+    if (direction == UP) {
+        if (!flightMode) {
+            if (onGround)
+                fallSpeed = - DEFAULT::GRAVITY;
+        }
+        else {
+            position += worldUp * speed;
+        }
+    }
+    if (direction == DOWN)
+        position -= worldUp * speed;
 }
 
-void Camera::handleMouseInput(double xOffset, double yOffset) {
+void Camera::handleMouseInput(double newMouseX, double newMouseY, bool cursorLocked) {
     static bool firstMouse = true;
+    if (!cursorLocked) {
+        // Ensure no snapping when cursor is unlocked
+        lastMouseX = newMouseX;
+        lastMouseY = newMouseY;
+        return;
+    }
     if (firstMouse) {
-        lastMouseX = xOffset;
-        lastMouseY = yOffset;
+        lastMouseX = newMouseX;
+        lastMouseY = newMouseY;
         firstMouse = false;
     }
-    double dx = xOffset - lastMouseX;
-    double dy = lastMouseY - yOffset; // Reversed since y-coordinates go from bottom to top
+    double dx = newMouseX - lastMouseX;
+    double dy = lastMouseY - newMouseY; // Reversed since y-coordinates go from bottom to top
 
-    lastMouseX = xOffset;
-    lastMouseY = yOffset;
+    lastMouseX = newMouseX;
+    lastMouseY = newMouseY;
 
     dx *= mouseSensitivity;
     dy *= mouseSensitivity;

@@ -22,7 +22,7 @@ class Window {
         int frameTimeIndex; // Points to the latest updated frame time
 
         // Generic callback handlers container
-        std::vector<std::function<void(double, double)>> mouseMoveCallbacks;
+        std::vector<std::function<void(double, double, bool)>> mouseMoveCallbacks;
 
         Window(int w, int h, const char* t);
         ~Window();
@@ -34,9 +34,14 @@ class Window {
 
         bool shouldClose();
         bool isKeyPressed(int key);
+        bool isKeyReleased(int key);
         void recomputeFPS(float deltaTime);
 
-        void registerMouseCallback(const std::function<void(double, double)>& callback);
+        void registerMouseCallback(const std::function<void(double, double, bool)>& callback);
+
+        void toggleCursorLock();
+        bool cursorLocked();
+
 
     private:
         static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -44,6 +49,10 @@ class Window {
         
         void onKeyDown(int key, int scancode, int action, int mods);
         void onMouseMove(double xpos, double ypos);
+
+        // States
+        bool isCursorLocked;
+
 
 };
 

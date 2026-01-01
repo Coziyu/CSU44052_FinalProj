@@ -19,7 +19,7 @@ class PerlinNoise {
 
         double perlin2D(double x, double y) const;
         // glm::vec3 perlin2DDerivatives(double x, double y) const;
-        double octavePerlin(double x, double y, int octaves, double persistence) const;
+        double octavePerlin(double x, double y, int octaves, double persistence, double lacunarity) const;
         
 
         private:

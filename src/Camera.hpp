@@ -2,7 +2,7 @@
 #define CAMERA_HPP
 
 #include "glm/glm.hpp"
-#include "Window.hpp"
+#include "core/Window.hpp"
 
 // Implementation based off of LearnOpenGL.com's Camera class
 
@@ -15,7 +15,9 @@ enum DIRECTIONS {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UP,
+    DOWN
 };
 
 
@@ -25,6 +27,7 @@ namespace DEFAULT {
     const float PITCH       =  0.0f;
     const float SPEED       =  100.0f;
     const float SENSITIVITY =  0.1f;
+    const float GRAVITY     = -98.1f;
 }
 
 class Camera {
@@ -48,6 +51,11 @@ class Camera {
         double lastMouseX;
         double lastMouseY;
 
+        // State
+        bool flightMode;
+        float fallSpeed;
+        bool onGround;
+
         /**
          * @brief Construct a new Camera object
          * 
@@ -70,9 +78,15 @@ class Camera {
         * @brief Handles mouse movement to rotate the camera.
         * This is to be added as a callback to the window
         */
-        void handleMouseInput(double xOffset, double yOffset);
+        void handleMouseInput(double xOffset, double yOffset, bool cursorLocked);
 
         void processInput(Window& window, const float deltaTime);
+
+        void update(const float deltaTime);
+
+        void resetFallSpeed();
+
+        void setOnGround(bool onGround);
 
     private:
         /**

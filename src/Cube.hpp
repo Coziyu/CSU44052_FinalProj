@@ -94,11 +94,17 @@ struct AxisXYZ {
 		glGenBuffers(1, &vertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
 
 		// Create a vertex buffer object to store the color data
 		glGenBuffers(1, &colorBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data), color_buffer_data, GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+		glBindVertexArray(0);
 
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShadersFromString(cubeVertexShader, cubeFragmentShader);
@@ -114,22 +120,17 @@ struct AxisXYZ {
 	void render(glm::mat4 cameraMatrix) {
 		glUseProgram(programID);
 
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
+		
 		glm::mat4 mvp = cameraMatrix;
 		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
-
+		
+		glBindVertexArray(vertexArrayID);
         // Draw the lines
         glDrawArrays(GL_LINES, 0, 6);
 
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
+
+
 	}
 
 	void cleanup() {
@@ -265,17 +266,23 @@ struct Box {
 		glGenBuffers(1, &vertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
 
 		// Create a vertex buffer object to store the color data
 		glGenBuffers(1, &colorBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data), color_buffer_data, GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
 
 		// Create an index buffer object to store the index data that defines triangle faces
 		glGenBuffers(1, &indexBufferID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
 
+		glBindVertexArray(0);
+		
 		// Create and compile our GLSL program from the shaders
 		programID = LoadShadersFromString(cubeVertexShader, cubeFragmentShader);
 		if (programID == 0)
@@ -290,31 +297,23 @@ struct Box {
 	void render(glm::mat4 cameraMatrix) {
 		glUseProgram(programID);
 
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-
+		
 		// TODO: Model transform 
 		// ------------------------------------
         glm::mat4 modelMatrix = glm::mat4();
-
+		
 		modelMatrix = glm::translate(modelMatrix, position);
 		modelMatrix = glm::scale(modelMatrix, scale);
-
+		
 		float time_elapsed = glfwGetTime();
 		modelMatrix = glm::rotate(modelMatrix, time_elapsed * 3.14f/6, glm::vec3(cos(time_elapsed),-1,1));
-
+		
 		// TODO: Set model-view-projection matrix
 		glm::mat4 mvp = cameraMatrix * modelMatrix;
 		// ------------------------------------
 		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
-
+		
+		glBindVertexArray(vertexArrayID);
 		// Draw the box
 		glDrawElements(
 			GL_TRIANGLES,      // mode
@@ -323,8 +322,7 @@ struct Box {
 			(void*)0           // element array buffer offset
 		);
 
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+		glBindVertexArray(0);
 	}
 
 	void cleanup() {

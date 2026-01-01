@@ -36,6 +36,7 @@ void Window::initialize() {
     glfwFocusWindow(window); //Do this to set cursor pos. otherwise it fails silently
     glfwSetCursorPos(window, static_cast<int>(width / 2), static_cast<int>(height / 2));
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    isCursorLocked = true;
 
     glfwSetWindowUserPointer(window, this);
     glfwSetKeyCallback(window, glfwKeyCallback);
@@ -73,6 +74,10 @@ bool Window::isKeyPressed(int key) {
     return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
+bool Window::isKeyReleased(int key) {
+    return glfwGetKey(window, key) == GLFW_RELEASE;
+}
+
 void Window::recomputeFPS(float deltaTime) {
     // Compute average FPS over the last 100 frames
     int newIndex = (frameTimeIndex + 1) % FRAMETIME_SAMPLES;
@@ -93,8 +98,21 @@ void Window::recomputeFPS(float deltaTime) {
 
 }
 
-void Window::registerMouseCallback(const std::function<void(double, double)>& callback) {
+void Window::registerMouseCallback(const std::function<void(double, double, bool)>& callback) {
     mouseMoveCallbacks.push_back(callback);
+}
+
+void Window::toggleCursorLock() {
+    isCursorLocked = !isCursorLocked;
+    if (isCursorLocked) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
+
+bool Window::cursorLocked() {
+    return isCursorLocked;
 }
 
 void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -125,6 +143,6 @@ void Window::onKeyDown(int key, int scancode, int action, int mods) {
 
 void Window::onMouseMove(double xpos, double ypos) {
     for (const auto& callback : mouseMoveCallbacks) {
-        callback(xpos, ypos);
+        callback(xpos, ypos, isCursorLocked);
     }
 }

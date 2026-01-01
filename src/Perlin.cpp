@@ -103,7 +103,7 @@ double PerlinNoise::perlin2D(double x, double y) const {
  * @param persistence value between 0 and 1, controlling subsequent amplitude falloff
  * @return double 
  */
-double PerlinNoise::octavePerlin(double x, double y, int octaves, double persistence) const {
+double PerlinNoise::octavePerlin(double x, double y, int octaves, double persistence, double lacunarity) const {
     double total = 0;
     double frequency = 1;
     double amplitude = 1;
@@ -115,7 +115,7 @@ double PerlinNoise::octavePerlin(double x, double y, int octaves, double persist
         maxValue += amplitude;
 
         amplitude *= persistence;
-        frequency *= 2;
+        frequency *= lacunarity;
     }
 
     return total / maxValue;
