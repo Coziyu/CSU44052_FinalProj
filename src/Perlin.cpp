@@ -1,13 +1,13 @@
 #include "Perlin.hpp"
-
+#include <omp.h>
 
 PerlinNoise::PerlinNoise(int repeat) : repeats(repeat) {};
-double PerlinNoise::fade(double t) {
+float PerlinNoise::fade(float t) {
     // 6t^5 - 15t^4 + 10t^3
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-double PerlinNoise::grad2D(int hash, double x, double y) {
+float PerlinNoise::grad2D(int hash, float x, float y) {
     // Bit mask for 2d
     switch (hash & 3) {
         case 0: return  x + y;
@@ -18,28 +18,28 @@ double PerlinNoise::grad2D(int hash, double x, double y) {
     }
 }
 
-double PerlinNoise::perlin2D(double x, double y) const {
+float PerlinNoise::perlin2D(float x, float y) const {
     if (repeats > 0) {
-        x = x - repeats * floor(x / repeats);
+        x = x - repeats * floor(x / repeats); 
         y = y - repeats * floor(y / repeats);
     }
 
     // Find unit cell coordinates
     int xi = static_cast<int>(floor(x)) & 255;
     int yi = static_cast<int>(floor(y)) & 255;
-    double xf = glm::fract(x);
-    double yf = glm::fract(y);
+    float xf = glm::fract(x);
+    float yf = glm::fract(y);
     
     // LI weights
-    double u = fade(xf);
-    double v = fade(yf);
+    float u = fade(xf);
+    float v = fade(yf);
 
     int aa = p[p[xi] + yi];
     int ab = p[p[xi] + inc(yi)];
     int ba = p[p[inc(xi)] + yi];
     int bb = p[p[inc(xi)] + inc(yi)];
 
-    double x1, x2;
+    float x1, x2;
     x1 = glm::mix(
         grad2D(aa, xf, yf),
         grad2D(ba, xf - 1, yf),
@@ -51,7 +51,6 @@ double PerlinNoise::perlin2D(double x, double y) const {
         u
     );
     return (glm::mix(x1, x2, v) + 1) / 2; // Normalize to [0,1]
-
 }
 
 // TODO: If time allows, implement derivative trick in:
@@ -61,7 +60,7 @@ double PerlinNoise::perlin2D(double x, double y) const {
 //  * @brief Returns the value and the derivatives of the 2D Perlin noise at (x, y)
 //  * @return glm::vec3 
 //  */
-// glm::vec3 PerlinNoise::perlin2DDerivatives(double x, double y) const {
+// glm::vec3 PerlinNoise::perlin2DDerivatives(float x, float y) const {
 //     if (repeats > 0) {
 //         x = x - repeats * floor(x / repeats);
 //         y = y - repeats * floor(y / repeats);
@@ -70,19 +69,19 @@ double PerlinNoise::perlin2D(double x, double y) const {
 //     // Find unit cell coordinates
 //     int xi = static_cast<int>(floor(x)) & 255;
 //     int yi = static_cast<int>(floor(y)) & 255;
-//     double xf = glm::fract(x);
-//     double yf = glm::fract(y);
+//     float xf = glm::fract(x);
+//     float yf = glm::fract(y);
     
 //     // LI weights
-//     double u = fade(xf);
-//     double v = fade(yf);
+//     float u = fade(xf);
+//     float v = fade(yf);
 
 //     int aa = p[p[xi] + yi];
 //     int ab = p[p[xi] + inc(yi)];
 //     int ba = p[p[inc(xi)] + yi];
 //     int bb = p[p[inc(xi)] + inc(yi)];
 
-//     double x1, x2;
+//     float x1, x2;
 //     x1 = glm::mix(
 //         grad2D(aa, xf, yf),
 //         grad2D(ba, xf - 1, yf),
@@ -101,14 +100,14 @@ double PerlinNoise::perlin2D(double x, double y) const {
  * 
  * @param octaves number of frequency layers
  * @param persistence value between 0 and 1, controlling subsequent amplitude falloff
- * @return double 
+ * @return float 
  */
-double PerlinNoise::octavePerlin(double x, double y, int octaves, double persistence, double lacunarity) const {
-    double total = 0;
-    double frequency = 1;
-    double amplitude = 1;
-    double maxValue = 0;  // Used for normalizing result to [0,1]
-
+float PerlinNoise::octavePerlin(float x, float y, int octaves, float persistence, float lacunarity) const {
+    float total = 0;
+    float frequency = 1;
+    float amplitude = 1;
+    float maxValue = 0;  // Used for normalizing result to [0,1]
+    
     for (int i = 0; i < octaves; i++) {
         total += perlin2D(x * frequency, y * frequency) * amplitude;
 

@@ -69,10 +69,8 @@ void Camera::processInput(Window& window, const float deltaTime) {
 void Camera::update(const float deltaTime) {
     // If flight mode not enabled, physics update
     if (!flightMode) {
-
         fallSpeed += DEFAULT::GRAVITY * deltaTime;
-        
-        position.y += fallSpeed > 0 ? fallSpeed * 2 * deltaTime : fallSpeed * deltaTime;
+        position.y += fallSpeed * deltaTime;
     }
     else {
         resetFallSpeed();
@@ -100,7 +98,7 @@ void Camera::handleMovement(DIRECTIONS direction, const float deltaTime) {
     if (direction == UP) {
         if (!flightMode) {
             if (onGround)
-                fallSpeed = - DEFAULT::GRAVITY;
+                fallSpeed = - 2 * DEFAULT::GRAVITY;
         }
         else {
             position += worldUp * speed;

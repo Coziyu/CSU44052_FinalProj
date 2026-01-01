@@ -191,57 +191,57 @@ void Terrain::update(float deltaTime){
 
     // Update normals
     // Reset face normals to zero
-    std::fill(face_normals.begin(), face_normals.end(), glm::vec3(0.0f));
+    // std::fill(face_normals.begin(), face_normals.end(), glm::vec3(0.0f));
 
-    #pragma omp parallel for
-    for (int i = 0; i < index_buffer_data.size(); i += 3) {
-        glm::vec3 v0 = vertex_buffer_data[index_buffer_data[i]];
-        glm::vec3 v1 = vertex_buffer_data[index_buffer_data[i + 1]];
-        glm::vec3 v2 = vertex_buffer_data[index_buffer_data[i + 2]];
+    // #pragma omp parallel for
+    // for (int i = 0; i < index_buffer_data.size(); i += 3) {
+    //     glm::vec3 v0 = vertex_buffer_data[index_buffer_data[i]];
+    //     glm::vec3 v1 = vertex_buffer_data[index_buffer_data[i + 1]];
+    //     glm::vec3 v2 = vertex_buffer_data[index_buffer_data[i + 2]];
 
-        glm::vec3 normal = (glm::cross(v1 - v0, v2 - v0));
-        #pragma omp atomic
-        face_normals[index_buffer_data[i]].x += normal.x;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i]].y += normal.y;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i]].z += normal.z;
+    //     glm::vec3 normal = (glm::cross(v1 - v0, v2 - v0));
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i]].x += normal.x;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i]].y += normal.y;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i]].z += normal.z;
 
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 1]].x += normal.x;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 1]].y += normal.y;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 1]].z += normal.z;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 1]].x += normal.x;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 1]].y += normal.y;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 1]].z += normal.z;
 
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 2]].x += normal.x;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 2]].y += normal.y;
-        #pragma omp atomic
-        face_normals[index_buffer_data[i + 2]].z += normal.z;
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < vertex_buffer_data.size(); i++) {
-        normal_buffer_data[i] = face_normals[i];
-    }
-    
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 2]].x += normal.x;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 2]].y += normal.y;
+    //     #pragma omp atomic
+    //     face_normals[index_buffer_data[i + 2]].z += normal.z;
+    // }
     // #pragma omp parallel for
     // for (int i = 0; i < vertex_buffer_data.size(); i++) {
-    //     // Find the first face that this vertex is part of
-    //     // We know that vertex i:
-    //     // if i % resolution <= resolution - 2 and 
-    //     // if i // resolution <= resolution - 2 
-    //     // is in i, i + resolution, i + 1
-    //     int row = i / resolution;
-    //     int col = i % resolution;
-    //     if (col <= (resolution - 2) && row <= (resolution - 2)) {
-    //         glm::vec3 v0 = vertex_buffer_data[i];
-    //         glm::vec3 v1 = vertex_buffer_data[i + resolution];
-    //         glm::vec3 v2 = vertex_buffer_data[i + 1];
-    //         normal_buffer_data[i] = glm::cross(v1 - v0, v2 - v0);
-    //     }
+    //     normal_buffer_data[i] = face_normals[i];
     // }
+    
+    #pragma omp parallel for
+    for (int i = 0; i < vertex_buffer_data.size(); i++) {
+        // Find the first face that this vertex is part of
+        // We know that vertex i:
+        // if i % resolution <= resolution - 2 and 
+        // if i // resolution <= resolution - 2 
+        // is in i, i + resolution, i + 1
+        int row = i / resolution;
+        int col = i % resolution;
+        if (col <= (resolution - 2) && row <= (resolution - 2)) {
+            glm::vec3 v0 = vertex_buffer_data[i];
+            glm::vec3 v1 = vertex_buffer_data[i + resolution];
+            glm::vec3 v2 = vertex_buffer_data[i + 1];
+            normal_buffer_data[i] = glm::cross(v1 - v0, v2 - v0);
+        }
+    }
 
     glBindVertexArray(vertexArrayID);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);

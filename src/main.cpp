@@ -86,7 +86,7 @@ int main() {
 
         
 
-        // Actual render of scene
+        // -- Actual render of scene
         glClearColor(0.7f, 0.4f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -104,7 +104,7 @@ int main() {
         mybox.render(projection * view);
         terrain.render(projection * view);
 
-        // -- Render IMGUI next````````````````''''
+        // -- Render IMGUI next 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -115,7 +115,7 @@ int main() {
             static int lacularity = 2.0f;
             static float peakHeight = 800.0f;
             ImGui::Begin("Terrain Parameters");
-            // Size of window
+            // Size of windowP
             ImGui::SetWindowSize(ImVec2(300, 150));
             ImGui::SliderInt("Octaves", &octaves, 1, 20);
             ImGui::SliderFloat("Persistence", &persistence, 0.0f, 1.0f);

@@ -8,18 +8,18 @@ class PerlinNoise {
 
     public:
         PerlinNoise(int repeat = -1);
-        static double fade(double t);
-        static double fadeprime(double t) {
+        static float fade(float t);
+        static float fadeprime(float t) {
             // 30 t^4 - 60 t^3 + 30 t^2
             return t * t * ( t * (t * 30 - 60) + 30);
         };
-        static double grad2D(int hash, double x, double y);
+        static float grad2D(int hash, float x, float y);
         
         int inc(int num) const;
 
-        double perlin2D(double x, double y) const;
-        // glm::vec3 perlin2DDerivatives(double x, double y) const;
-        double octavePerlin(double x, double y, int octaves, double persistence, double lacunarity) const;
+        float perlin2D(float x, float y) const;
+        // glm::vec3 perlin2DDerivatives(float x, float y) const;
+        float octavePerlin(float x, float y, int octaves, float persistence, float lacunarity) const;
         
 
         private:
