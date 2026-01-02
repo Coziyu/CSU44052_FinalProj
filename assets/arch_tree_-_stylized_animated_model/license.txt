@@ -1,0 +1,11 @@
+Model Information:
+* title:	Arch tree - Stylized Animated Model
+* source:	https://sketchfab.com/3d-models/arch-tree-stylized-animated-model-3c77a3bdd58b43e9b6047d14cce093fc
+* author:	Meleagor (https://sketchfab.com/Meleagor)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Arch tree - Stylized Animated Model" (https://sketchfab.com/3d-models/arch-tree-stylized-animated-model-3c77a3bdd58b43e9b6047d14cce093fc) by Meleagor (https://sketchfab.com/Meleagor) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

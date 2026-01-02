@@ -19,32 +19,40 @@
 #include "Timer.hpp"
 #include "WindowManager.hpp"
 #include "InputManager.hpp"
+#include "models/MushroomLight.hpp"
 
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
 public:
-    Scene() : terrain(3000.0f * glm::vec3(1,0,1), 300) {}
+    Scene() : 
+    terrain(3000.0f * glm::vec3(1,0,1), 300)
+    {
+    }
 
     void initialize() {
         terrainShader = std::make_shared<Shader>("../shaders/terrain.vert", "../shaders/terrain.frag");
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
+        mushroomLight.initialize();
     }
 
     void update(float dt) {
         terrain.update(dt);
+        mushroomLight.update(dt); // TODO, give absolute time or update mushroomLight to take dt, and accumulate it's own time
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
     float terrGroundConstraint(glm::vec3& pos) { return terrain.groundHeightConstraint(pos); }
-    void terrSetNoiseParams(int o, float p, int l) { terrain.setNoiseParams(o,p,l); }
+    void terrSetNoiseParams(int o, float p, float l) { terrain.setNoiseParams(o,p,l); }
     void terrSetPeakHeight(float h) { terrain.setPeakHeight(h); }
+    void terrSetWireframeMode(bool enabled) { terrain.setWireframeMode(enabled); }
 
     void render(const glm::mat4& vp) {
         debugAxes.render(vp);
         mybox.render(vp);
         terrain.render(vp);
+        mushroomLight.render(vp);
     }
 
 private:
@@ -52,6 +60,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
+    MushroomLight mushroomLight;
 };
 
 
@@ -93,9 +102,10 @@ public:
         float viewDist = 100000.0f;
         // UI state
         int octaves = 5;
-        float persistence = 0.239f;
-        int lacunarity = 2;
+        float persistence = 0.503f;
+        float lacunarity = 2;
         float peakHeight = 800.0f;
+        bool terrainWireframe = false;
 
         while (!windowManager.shouldClose()) {
             timer.tick();
@@ -125,8 +135,9 @@ public:
                 ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderInt("Octaves", &octaves, 1, 20);
                 ImGui::SliderFloat("Persistence", &persistence, 0.0f, 1.0f);
-                ImGui::SliderInt("Lacunarity", &lacunarity, 1, 10);
+                ImGui::SliderFloat("Lacunarity", &lacunarity, 1, 10);
                 ImGui::SliderFloat("Peak Height", &peakHeight, 0.0f, 2000.0f);
+                ImGui::Checkbox("Wireframe Mode", &terrainWireframe);
                 ImGui::End();
 
                 ImGui::Begin("View Parameters");
@@ -136,6 +147,7 @@ public:
 
                 scene.terrSetNoiseParams(octaves, persistence, lacunarity);
                 scene.terrSetPeakHeight(peakHeight);
+                scene.terrSetWireframeMode(terrainWireframe);
             }
             gui.render();
 

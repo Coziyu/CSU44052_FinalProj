@@ -3,7 +3,9 @@
 in vec4 color;
 in vec3 fragPos;
 in vec3 fragNorm;
-in vec3 lightPosition;
+
+
+uniform vec3 lightPosition;
 
 out vec4 finalColor;
 
@@ -20,7 +22,7 @@ void main()
     vec3 ambient = vec3(0.1, 0.1, 0.1);
 
     vec3 norm = normalize(fragNorm);
-    vec3 lightDir = normalize(vec3(12, 2, 12));
+    vec3 lightDir = normalize(lightPosition);
 
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);

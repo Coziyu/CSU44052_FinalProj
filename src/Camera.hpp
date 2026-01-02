@@ -25,9 +25,9 @@ enum DIRECTIONS {
 namespace DEFAULT {
     const float YAW         =  0.0f;
     const float PITCH       =  0.0f;
-    const float SPEED       =  100.0f;
+    const float SPEED       =  200.0f;
     const float SENSITIVITY =  0.1f;
-    const float GRAVITY     = -98.1f;
+    const float GRAVITY     = -981.0f;
 }
 
 class Camera {

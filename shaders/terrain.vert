@@ -4,6 +4,7 @@ layout (location = 0) in vec3 aPos;
 layout (location = 2) in vec3 aNorm;
 
 uniform mat4 MVP;
+uniform mat4 Model;
 
 out vec4 color;
 out vec3 fragPos;
@@ -15,5 +16,5 @@ void main()
 
     color = vec4(1.0, 0.3, 1.0, 1.0);
     fragPos = aPos;
-    fragNorm = aNorm;
+    fragNorm = mat3(transpose(inverse(Model))) * aNorm;
 }

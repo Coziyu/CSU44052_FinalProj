@@ -31,15 +31,15 @@ void Shader::setUniFloat(const std::string &name, float value){
 }
 
 void Shader::setUniVec2(const std::string &name, const glm::vec2 &value){
-    glUniform2f(glGetUniformLocation(programID, name.c_str()), value.x, value.y);
+    glUniform2fv(glGetUniformLocation(programID, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setUniVec3(const std::string &name, const glm::vec3 &value){
-    glUniform3f(glGetUniformLocation(programID, name.c_str()), value.x, value.y, value.z);
+    glUniform3fv(glGetUniformLocation(programID, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setUniVec4(const std::string &name, const glm::vec4 &value){
-    glUniform4f(glGetUniformLocation(programID, name.c_str()), value.x, value.y, value.z, value.w);
+    glUniform4fv(glGetUniformLocation(programID, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setUniVec2(const std::string &name, float x, float y){
@@ -65,4 +65,9 @@ void Shader::setUniMat3(const std::string &name, const glm::mat3 &mat){
 void Shader::setUniMat4(const std::string &name, const glm::mat4 &mat){
     glUniformMatrix4fv(glGetUniformLocation(programID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
+
+void Shader::setUniMat4Arr(const std::string &name, const std::vector<glm::mat4> &mat, const int size){
+    glUniformMatrix4fv(glGetUniformLocation(programID, name.c_str()), size, GL_FALSE, &mat[0][0][0]);
+}
+
 GLuint Shader::getProgramID() const { return programID; }

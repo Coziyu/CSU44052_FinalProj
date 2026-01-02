@@ -21,8 +21,6 @@ class Terrain : public DynamicEntity {
         GLuint indexBufferID;
         GLuint normalBufferID;
 
-        GLuint mvpMatrixID;
-
         // 
         PerlinNoise pn;
         glm::vec3 offset; // This parameter is used to "move" the terrain around by shifting the noise map
@@ -32,6 +30,8 @@ class Terrain : public DynamicEntity {
         float persistence;
         float lacunarity;
         float peakHeight;
+
+        bool modeWireframe;
 
         // For computing the special scale factor
         float fov;
@@ -51,6 +51,7 @@ class Terrain : public DynamicEntity {
         float getCenterHeight();
 
         bool groundHeightConstraint(glm::vec3 &position);
+        void setWireframeMode(bool enabled);
 };
 
 #endif // TERRAIN_HPP

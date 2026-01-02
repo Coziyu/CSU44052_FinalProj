@@ -37,6 +37,8 @@ class Shader {
     void setUniMat3(const std::string &name, const glm::mat3 &mat);
     void setUniMat4(const std::string &name, const glm::mat4 &mat);
 
+    void setUniMat4Arr(const std::string &name, const std::vector<glm::mat4> &mat, const int size);
+
 };
 
 #endif // SHADER_HPP

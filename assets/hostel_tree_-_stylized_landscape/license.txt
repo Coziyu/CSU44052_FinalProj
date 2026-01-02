@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hostel Tree - stylized landscape
+* source:	https://sketchfab.com/3d-models/hostel-tree-stylized-landscape-5d30c17ba8814eee8cb4067b46186c65
+* author:	Meleagor (https://sketchfab.com/Meleagor)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hostel Tree - stylized landscape" (https://sketchfab.com/3d-models/hostel-tree-stylized-landscape-5d30c17ba8814eee8cb4067b46186c65) by Meleagor (https://sketchfab.com/Meleagor) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

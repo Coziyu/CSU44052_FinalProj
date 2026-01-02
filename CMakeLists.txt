@@ -25,6 +25,7 @@ add_subdirectory(external)
 
 
 add_executable(wonderland
+src/models/MushroomLight.cpp
 src/Entities.cpp
 src/Window.cpp
 src/ResourceManager.cpp

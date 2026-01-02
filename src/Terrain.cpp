@@ -28,14 +28,16 @@ Terrain::Terrain(glm::vec3 _scale, int _resolution) {
     fov = 45.0f;
 
     // Controls how "steep" the slopes are
-    peakHeight = 240.0f;
+    peakHeight = 800.0f;
     resolution = _resolution;
-    octaves = 6;
-    persistence = 0.25f;
+    octaves = 5;
+    persistence = 0.503;
     lacunarity = 2;
     pn = PerlinNoise(-1);
 
-    consistencyFactor = resolution / 100.0f * DEFAULT::SPEED / scale.x;
+    modeWireframe = false;
+
+    consistencyFactor = resolution / scale.x;
 
     index_buffer_data = generate_grid_indices_acw(resolution);
     // Populate vertex_buffer_data to form a grid of 16 * 16
@@ -113,8 +115,6 @@ void Terrain::initialize(std::shared_ptr<Shader> shaderptr, glm::vec3 position) 
     if (shaderptr->getProgramID() == 0) {
         std::cerr << "Invalid shader provided to Terrain::initialize()\n";
     }
-    mvpMatrixID = glGetUniformLocation(shader->getProgramID(), "MVP");
-
 }
 
 void Terrain::setNoiseParams(int octaves, float persistence, float lacunarity) {
@@ -140,6 +140,10 @@ bool Terrain::groundHeightConstraint(glm::vec3 &position) {
     return false;
 }
 
+void Terrain::setWireframeMode(bool enabled) {
+    modeWireframe = enabled;
+}
+
 void Terrain::render(glm::mat4 vp) {
     glm::mat4 modelMatrix = glm::mat4();
     modelMatrix = glm::translate(modelMatrix, position);
@@ -150,11 +154,14 @@ void Terrain::render(glm::mat4 vp) {
 
     shader->use();
     shader->setUniMat4("MVP", mvp);
-    shader->setUniVec3("lightPosition", glm::vec3(1000, 1000, 1000));
+    shader->setUniMat4("Model", modelMatrix);
+    shader->setUniVec3("lightPosition", glm::vec3(1000, 0, 0));
     glBindVertexArray(vertexArrayID);
 
     // Wireframe
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if (modeWireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
     glDrawElements(GL_TRIANGLES, index_buffer_data.size(), GL_UNSIGNED_INT, 0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -166,7 +173,7 @@ void Terrain::update(float deltaTime){
 
     float heightFromGround = offset.y;
     const float originalHeight = 300.0f; //! TODO: UPDATE THIS IF WE CHANGE CAMERA
-    specialScale =  glm::max(1.0f, heightFromGround / originalHeight) *  glm::vec3(1, 0, 1) + glm::vec3(0, 1, 0);
+    specialScale =  glm::max(2.0f, heightFromGround / originalHeight) *  glm::vec3(1, 0, 1) + glm::vec3(0, 1, 0);
 
     // Update perlin noise height
     float offsetU = offset.x * consistencyFactor;
@@ -189,8 +196,7 @@ void Terrain::update(float deltaTime){
     }
 
 
-    // Update normals
-    // Reset face normals to zero
+    // - For averaging face normals
     // std::fill(face_normals.begin(), face_normals.end(), glm::vec3(0.0f));
 
     // #pragma omp parallel for
@@ -226,6 +232,7 @@ void Terrain::update(float deltaTime){
     //     normal_buffer_data[i] = face_normals[i];
     // }
     
+    // - Faster but less accurate
     #pragma omp parallel for
     for (int i = 0; i < vertex_buffer_data.size(); i++) {
         // Find the first face that this vertex is part of
