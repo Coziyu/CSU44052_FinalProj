@@ -1,6 +1,7 @@
 #include "MushroomLight.hpp"
 #include "models/MushroomLight.hpp"
 #include <glm/detail/type_vec.hpp>
+#include <unordered_map>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -16,7 +17,7 @@ void MushroomLight::initialize(bool isSkinned) {
 	scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	// Modify your path if needed
-	if (!loadModel(model, "../assets/arch_tree/scene.gltf")) {
+	if (!loadModel(model, "../assets/bot.gltf")) {
 		return;
 	}
 
@@ -24,8 +25,6 @@ void MushroomLight::initialize(bool isSkinned) {
 	primitiveObjects = bindModel(model);
 
 	// Prepare mesh transforms for when skinning is not used
-	localMeshTransforms.resize(model.nodes.size());
-	globalMeshTransforms.resize(model.nodes.size());
 	updateMeshTransforms();
 
 
@@ -118,10 +117,10 @@ std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &mo
 		// ----------------------------------------------
 
 		int rootNodeIndex = skin.joints[0];
-		std::vector<glm::mat4> localJointTranforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> localJointTranforms(skin.joints.size());
 		computeLocalNodeTransform(model, rootNodeIndex, localJointTranforms);
 
-		std::vector<glm::mat4> globalJointTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> globalJointTransforms(skin.joints.size());
 		computeGlobalNodeTransform(model, localJointTranforms, rootNodeIndex, glm::mat4(1.0f), globalJointTransforms);
 		
 		for (size_t j = 0; j < skin.joints.size(); j++){
@@ -202,12 +201,13 @@ std::vector<AnimationObject> MushroomLight::prepareAnimation(const tinygltf::Mod
 }
 
 void MushroomLight::updateAnimation(
-		const tinygltf::Model &model, 
-		const tinygltf::Animation &anim, 
-		const AnimationObject &animationObject, 
-		float time,
-		std::vector<glm::mat4> &nodeTransforms,
-		bool interpolated) 
+              		const tinygltf::Model &model, 
+              		const tinygltf::Animation &anim, 
+              		const AnimationObject &animationObject, 
+              		float time,
+              		std::unordered_map<int, glm::mat4> &nodeTransforms,
+              		bool interpolated
+              	) 
 {
 	// There are many channels so we have to accumulate the transforms 
 	for (const auto &channel : anim.channels) {
@@ -275,7 +275,7 @@ void MushroomLight::updateAnimation(
 	}
 }
 
-void MushroomLight::updateSkinning(const std::vector<glm::mat4> &nodeTransforms) {
+void MushroomLight::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
 
 	// -------------------------------------------------
 	// TODO: Recompute joint matrices 
@@ -302,7 +302,7 @@ void MushroomLight::update(float deltaTime) {
 		const AnimationObject &animationObject = animationObjects[0];
 		
 		const tinygltf::Skin &skin = model.skins[0];
-		std::vector<glm::mat4> nodeTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> nodeTransforms(skin.joints.size());
 		for (size_t i = 0; i < nodeTransforms.size(); ++i) {
 			nodeTransforms[i] = glm::mat4(1.0);
 		}
@@ -313,7 +313,7 @@ void MushroomLight::update(float deltaTime) {
 		// Compute global transforms at each node
 		int rootNode = skin.joints[0];
 		glm::mat4 parentTransform(1.0f);
-		std::vector<glm::mat4> globalNodeTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> globalNodeTransforms(skin.joints.size());
 		computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0), globalNodeTransforms);
 		updateSkinning(globalNodeTransforms);
 	}
@@ -459,8 +459,9 @@ glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
 	return transform;
 }
 void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model, 
-		int nodeIndex, 
-		std::vector<glm::mat4> &localTransforms)
+              		int nodeIndex, 
+              		std::unordered_map<int, glm::mat4> &localTransforms
+              	)
 {
 	const tinygltf::Node &currNode = model.nodes[nodeIndex];
 	localTransforms[nodeIndex] = getNodeTransform(currNode);
@@ -470,9 +471,9 @@ void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model,
 }
 
 void MushroomLight::computeGlobalNodeTransform(const tinygltf::Model& model, 
-		const std::vector<glm::mat4> &localTransforms,
+		std::unordered_map<int, glm::mat4> &localTransforms,
 		int nodeIndex, const glm::mat4& parentTransform, 
-		std::vector<glm::mat4> &globalTransforms)
+		std::unordered_map<int, glm::mat4> &globalTransforms)
 {
 	const tinygltf::Node &currNode = model.nodes[nodeIndex];
 	std::string nameNode = currNode.name;

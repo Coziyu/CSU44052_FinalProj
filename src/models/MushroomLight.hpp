@@ -8,6 +8,7 @@
 
 #include <glm/detail/type_mat.hpp>
 #include <tiny_gltf.h>
+#include <unordered_map>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -30,8 +31,8 @@ struct MushroomLight : public Entity {
 	std::vector<SkinObject> skinObjects;
 	std::vector<AnimationObject> animationObjects;
 
-	std::vector<glm::mat4> localMeshTransforms; // This is a misnomer, because we include nodes without meshes too
-	std::vector<glm::mat4> globalMeshTransforms;
+	std::unordered_map<int, glm::mat4> localMeshTransforms; // This is a misnomer, because we include nodes without meshes too
+	std::unordered_map<int, glm::mat4> globalMeshTransforms;
 
 	void updateMeshTransforms();
 
@@ -39,14 +40,13 @@ struct MushroomLight : public Entity {
 
 	void computeLocalNodeTransform(const tinygltf::Model& model, 
 		int nodeIndex, 
-		std::vector<glm::mat4> &localTransforms
+		std::unordered_map<int, glm::mat4> &localTransforms
 	);
 
 	void computeGlobalNodeTransform(const tinygltf::Model& model, 
-		const std::vector<glm::mat4> &localTransforms,
+		std::unordered_map<int, glm::mat4> &localTransforms,
 		int nodeIndex, const glm::mat4& parentTransform, 
-		std::vector<glm::mat4> &globalTransforms
-	);
+		std::unordered_map<int, glm::mat4> &globalTransforms);
 
 	std::vector<SkinObject> prepareSkinning(const tinygltf::Model &model);
 
@@ -59,11 +59,11 @@ struct MushroomLight : public Entity {
 		const tinygltf::Animation &anim, 
 		const AnimationObject &animationObject, 
 		float time,
-		std::vector<glm::mat4> &nodeTransforms,
+		std::unordered_map<int, glm::mat4> &nodeTransforms,
 		bool interpolated
 	);
 
-	void updateSkinning(const std::vector<glm::mat4> &nodeTransforms);
+	void updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms);
 
 	void update(float deltaTime);
 
