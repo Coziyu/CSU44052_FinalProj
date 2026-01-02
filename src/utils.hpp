@@ -19,4 +19,6 @@ std::vector<unsigned int> generate_grid_indices_cw(const unsigned int size);
 GLuint LoadShadersFromFile(const char *vertex_file_path, const char *fragment_file_path);
 GLuint LoadShadersFromFile(const char *vertex_file_path, const char *fragment_file_path, const char *geometry_file_path);
 
+std::string readFileAsString(const char* filename);
+
 #endif // UTILS_HPP

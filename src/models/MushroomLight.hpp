@@ -1,6 +1,7 @@
 #ifndef MUSHROOMLIGHT_HPP
 #define MUSHROOMLIGHT_HPP
 
+#include "Entities.hpp"
 #include "Shader.hpp"
 #include "utils.hpp"
 #include "Loadable.hpp"
@@ -14,10 +15,11 @@ static glm::vec3 lightPosition(-275.0f, 500.0f, 800.0f);
 
 
 
-struct MushroomLight {
+struct MushroomLight : public Entity {
 	// 
 	std::shared_ptr<Shader> shader;
 	float modelTime;
+	bool isSkinned;
 
 	GLuint jointMatricesID;
 
@@ -61,7 +63,7 @@ struct MushroomLight {
 
 	bool loadModel(tinygltf::Model &model, const char *filename);
 
-	void initialize();
+	void initialize(bool isSkinned);
 
 	void bindMesh(
 		std::vector<PrimitiveObject> &primitiveObjects,

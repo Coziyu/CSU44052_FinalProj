@@ -10,3 +10,5 @@ void Entity::setEntityID(int id) {
     }
     entityID = id;
 }
+
+Entity::Entity() : position(0.0f), scale(1.0f) {};

@@ -138,11 +138,10 @@ void Window::glfwMouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 void Window::onKeyDown(int key, int scancode, int action, int mods) {
 
-
-    std::cout << "Key event: key=" << key 
-              << ", scancode=" << scancode 
-              << ", action=" << action 
-              << ", mods=" << mods << std::endl;
+    // std::cout << "Key event: key=" << key 
+    //           << ", scancode=" << scancode 
+    //           << ", action=" << action 
+    //           << ", mods=" << mods << std::endl;
 }
 
 void Window::onMouseMove(double xpos, double ypos) {

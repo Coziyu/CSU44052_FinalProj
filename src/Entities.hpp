@@ -13,7 +13,9 @@ class Entity : public Drawable {
     public:
         int getEntityID() const;
         void setEntityID(int id);
-    
+
+        Entity();
+
         glm::vec3 position;
         glm::vec3 scale;
     protected:

@@ -1,5 +1,6 @@
 #include "MushroomLight.hpp"
 #include "models/MushroomLight.hpp"
+#include <glm/detail/type_vec.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -8,8 +9,11 @@
 
 
 //-- To change when changing models
-void MushroomLight::initialize() {
+void MushroomLight::initialize(bool isSkinned) {
 	modelTime = 0.0f;
+
+	position = glm::vec3(0.0f, 0.0f, 0.0f);
+	scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	// Modify your path if needed
 	if (!loadModel(model, "../assets/MushroomLight/scene.gltf")) {
@@ -27,7 +31,7 @@ void MushroomLight::initialize() {
 
 	// Create and compile our GLSL program from the shaders
 
-	shader = std::make_shared<Shader>("../shaders/bot.vert", "../shaders/bot.frag");
+	shader = std::make_shared<Shader>("../shaders/mushroom_light.vert", "../shaders/mushroom_light.frag");
 
 	if (shader->getProgramID() == 0) {
 		std::cerr << "Failed to load shaders." << std::endl;
@@ -38,10 +42,17 @@ void MushroomLight::render(glm::mat4 cameraMatrix) {
     shader->use();
     
     // Set camera
-    glm::mat4 mvp = cameraMatrix;
+    glm::mat4 vp = cameraMatrix;
+
+	// Set model
+	glm::mat4 modelMatrix = glm::mat4();
+	modelMatrix = glm::translate(modelMatrix, position);
+	modelMatrix = glm::scale(modelMatrix, scale);
+
+	glm::mat4 mvp = vp * modelMatrix;
 
     shader->setUniMat4("MVP", mvp);
-
+	shader->setUniBool("isSkinned", isSkinned);
     // -----------------------------------------------------------------
     // TODO: Set animation data for linear blend skinning in shader
     // -----------------------------------------------------------------
