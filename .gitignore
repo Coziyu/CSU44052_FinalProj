@@ -43,3 +43,5 @@
 external/*
 build/*
 .cache/*
+
+_old*

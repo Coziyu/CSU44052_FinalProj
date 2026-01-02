@@ -32,7 +32,7 @@ class Window {
         void pollEvents();
         void processInput();
 
-        bool shouldClose();
+        bool shouldClose() const;
         bool isKeyPressed(int key);
         bool isKeyReleased(int key);
         void recomputeFPS(float deltaTime);
@@ -40,7 +40,7 @@ class Window {
         void registerMouseCallback(const std::function<void(double, double, bool)>& callback);
 
         void toggleCursorLock();
-        bool cursorLocked();
+        bool cursorLocked() const;
 
 
     private:

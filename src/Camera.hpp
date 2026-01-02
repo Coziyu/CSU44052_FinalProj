@@ -2,7 +2,7 @@
 #define CAMERA_HPP
 
 #include "glm/glm.hpp"
-#include "core/Window.hpp"
+#include "Window.hpp"
 
 // Implementation based off of LearnOpenGL.com's Camera class
 

@@ -66,7 +66,7 @@ void Window::processInput() {
         glfwSetWindowShouldClose(window, true);
 }
 
-bool Window::shouldClose() {
+bool Window::shouldClose() const {
     return glfwWindowShouldClose(window);
 }
 
@@ -111,7 +111,7 @@ void Window::toggleCursorLock() {
     }
 }
 
-bool Window::cursorLocked() {
+bool Window::cursorLocked() const {
     return isCursorLocked;
 }
 

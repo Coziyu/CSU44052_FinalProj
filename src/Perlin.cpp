@@ -56,44 +56,7 @@ float PerlinNoise::perlin2D(float x, float y) const {
 // TODO: If time allows, implement derivative trick in:
 // https://iquilezles.org/articles/morenoise/
 // https://www.youtube.com/watch?v=gsJHzBTPG0Y
-// /**
-//  * @brief Returns the value and the derivatives of the 2D Perlin noise at (x, y)
-//  * @return glm::vec3 
-//  */
-// glm::vec3 PerlinNoise::perlin2DDerivatives(float x, float y) const {
-//     if (repeats > 0) {
-//         x = x - repeats * floor(x / repeats);
-//         y = y - repeats * floor(y / repeats);
-//     }
 
-//     // Find unit cell coordinates
-//     int xi = static_cast<int>(floor(x)) & 255;
-//     int yi = static_cast<int>(floor(y)) & 255;
-//     float xf = glm::fract(x);
-//     float yf = glm::fract(y);
-    
-//     // LI weights
-//     float u = fade(xf);
-//     float v = fade(yf);
-
-//     int aa = p[p[xi] + yi];
-//     int ab = p[p[xi] + inc(yi)];
-//     int ba = p[p[inc(xi)] + yi];
-//     int bb = p[p[inc(xi)] + inc(yi)];
-
-//     float x1, x2;
-//     x1 = glm::mix(
-//         grad2D(aa, xf, yf),
-//         grad2D(ba, xf - 1, yf),
-//         u
-//     );
-//     x2 = glm::mix(
-//         grad2D(ab, xf, yf - 1),
-//         grad2D(bb, xf - 1, yf - 1),
-//         u
-//     );
-//     return (glm::mix(x1, x2, v) + 1) / 2; // Normalize to [0,1]
-// }
 
 /**
  * @brief noise with multiple samples layered together

@@ -2,7 +2,7 @@
 #define TERRAIN_HPP
 #include "Perlin.hpp"
 #include "Shader.hpp"
-#include "core/Entities.hpp"
+#include "Entities.hpp"
 #include "utils.hpp"
 #include <glm/detail/type_vec.hpp>
 #include <memory>

@@ -25,9 +25,9 @@ add_subdirectory(external)
 
 
 add_executable(wonderland
-src/core/Entities.cpp
-src/core/Window.cpp
-src/core/ResourceManager.cpp
+src/Entities.cpp
+src/Window.cpp
+src/ResourceManager.cpp
 src/utils.cpp
 src/Terrain.cpp
 src/Camera.cpp
