@@ -6,6 +6,7 @@
 #include "utils.hpp"
 #include "Loadable.hpp"
 
+#include <glm/detail/type_mat.hpp>
 #include <tiny_gltf.h>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -28,6 +29,11 @@ struct MushroomLight : public Entity {
 	std::vector<PrimitiveObject> primitiveObjects;
 	std::vector<SkinObject> skinObjects;
 	std::vector<AnimationObject> animationObjects;
+
+	std::vector<glm::mat4> localMeshTransforms; // This is a misnomer, because we include nodes without meshes too
+	std::vector<glm::mat4> globalMeshTransforms;
+
+	void updateMeshTransforms();
 
 	glm::mat4 getNodeTransform(const tinygltf::Node& node);
 

@@ -34,7 +34,7 @@ public:
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
-        mushroomLight.initialize(false);
+        mushroomLight.initialize(true);
     }
 
     void update(float dt) {

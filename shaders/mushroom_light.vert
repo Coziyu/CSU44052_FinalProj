@@ -5,8 +5,8 @@ layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec3 vertexNormal;
 layout(location = 2) in vec2 vertexUV;
 layout(location = 3) in vec4 jointIndices;
-layout(location = 4) in vec4 jointWeights;
-
+layout(location = 4) in vec4 jointWeights; // If !skinning, this is used as local node transform
+layout(location = 5) in vec4 tangent;
 
 // Output data, to be interpolated for each fragment
 out vec3 worldPosition;
@@ -24,7 +24,10 @@ void main() {
         jointWeights.w * jointMatrices[int (jointIndices.w)];
 
     
-    vec4 worldPosition4 = isSkinned ? skinMat * vec4(vertexPosition, 1.0) : vec4(vertexPosition, 1.0);
+    vec4 worldPosition4 = vec4(vertexPosition, 1.0);
+    if (isSkinned) {
+        worldPosition4 = skinMat * worldPosition4;
+    }
 
     // Transform vertex
     gl_Position =  MVP * worldPosition4;

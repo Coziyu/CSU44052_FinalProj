@@ -16,12 +16,18 @@ void MushroomLight::initialize(bool isSkinned) {
 	scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	// Modify your path if needed
-	if (!loadModel(model, "../assets/MushroomLight/scene.gltf")) {
+	if (!loadModel(model, "../assets/arch_tree/scene.gltf")) {
 		return;
 	}
 
 	// Prepare buffers for rendering 
 	primitiveObjects = bindModel(model);
+
+	// Prepare mesh transforms for when skinning is not used
+	localMeshTransforms.resize(model.nodes.size());
+	globalMeshTransforms.resize(model.nodes.size());
+	updateMeshTransforms();
+
 
 	// Prepare joint matrices
 	skinObjects = prepareSkinning(model);
@@ -60,6 +66,9 @@ void MushroomLight::render(glm::mat4 cameraMatrix) {
     if (!skinObjects.empty()) {
         shader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
     }
+	// if (!isSkinned){
+	// 	shader->setUniMat4Arr("jointMatrices", localMeshTransforms, localMeshTransforms.size());
+	// }
     
     // -----------------------------------------------------------------
 
@@ -308,7 +317,7 @@ void MushroomLight::update(float deltaTime) {
 		computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0), globalNodeTransforms);
 		updateSkinning(globalNodeTransforms);
 	}
-
+	updateMeshTransforms();
 }
 
 bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
@@ -388,6 +397,7 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 			if (attrib.first.compare("TEXCOORD_0") == 0) vaa = 2;
 			if (attrib.first.compare("JOINTS_0") == 0) vaa = 3;
 			if (attrib.first.compare("WEIGHTS_0") == 0) vaa = 4;
+			if (attrib.first.compare("TANGENT") == 0) vaa = 5;
 			if (vaa > -1) {
 				glEnableVertexAttribArray(vaa);
 				glVertexAttribPointer(vaa, size, accessor.componentType,
@@ -410,6 +420,23 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 
 
 
+
+void MushroomLight::updateMeshTransforms() {
+	int rootNodeIndex = model.scenes[model.defaultScene].nodes[0];
+	computeLocalNodeTransform(
+		model, 
+		rootNodeIndex, 
+		localMeshTransforms
+	);
+
+	computeGlobalNodeTransform(
+		model, 
+		localMeshTransforms, 
+		rootNodeIndex, 
+		glm::mat4(1.0f), 
+		globalMeshTransforms
+	);
+}
 
 //-- Fixed methods
 glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
