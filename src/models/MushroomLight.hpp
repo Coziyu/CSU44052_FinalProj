@@ -71,10 +71,8 @@ struct MushroomLight : public Entity {
 
 	void initialize(bool isSkinned);
 
-	void bindMesh(
-		std::vector<PrimitiveObject> &primitiveObjects,
-		tinygltf::Model &model, tinygltf::Mesh &mesh
-	);
+	void bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
+				tinygltf::Model &model, tinygltf::Mesh &mesh, int nodeIndex);
 
 	void bindModelNodes(
 		std::vector<PrimitiveObject> &primitiveObjects, 
@@ -87,7 +85,8 @@ struct MushroomLight : public Entity {
 	void drawMesh(
 		const std::vector<PrimitiveObject> &primitiveObjects,
 		tinygltf::Model &model, 
-		tinygltf::Mesh &mesh
+		tinygltf::Mesh &mesh,
+		int meshIndex
 	);
 
 	void drawModelNodes(

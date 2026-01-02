@@ -11,15 +11,19 @@
 
 //-- To change when changing models
 void MushroomLight::initialize(bool isSkinned) {
+	this->isSkinned = isSkinned;
 	modelTime = 0.0f;
 
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
-	scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	scale = 15.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 	// Modify your path if needed
-	if (!loadModel(model, "../assets/bot.gltf")) {
+	if (!loadModel(model, "../assets/arch_tree/scene.gltf")) {
 		return;
 	}
+
+	std::cout << "model node count" << model.nodes.size() << std::endl;
+	std::cout << "joint count" << model.skins[0].joints.size() << std::endl;
 
 	// Prepare buffers for rendering 
 	primitiveObjects = bindModel(model);
@@ -117,10 +121,10 @@ std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &mo
 		// ----------------------------------------------
 
 		int rootNodeIndex = skin.joints[0];
-		std::unordered_map<int, glm::mat4> localJointTranforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> localJointTranforms(model.nodes.size());
 		computeLocalNodeTransform(model, rootNodeIndex, localJointTranforms);
 
-		std::unordered_map<int, glm::mat4> globalJointTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> globalJointTransforms(model.nodes.size());
 		computeGlobalNodeTransform(model, localJointTranforms, rootNodeIndex, glm::mat4(1.0f), globalJointTransforms);
 		
 		for (size_t j = 0; j < skin.joints.size(); j++){
@@ -302,7 +306,7 @@ void MushroomLight::update(float deltaTime) {
 		const AnimationObject &animationObject = animationObjects[0];
 		
 		const tinygltf::Skin &skin = model.skins[0];
-		std::unordered_map<int, glm::mat4> nodeTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> nodeTransforms(model.nodes.size());
 		for (size_t i = 0; i < nodeTransforms.size(); ++i) {
 			nodeTransforms[i] = glm::mat4(1.0);
 		}
@@ -313,7 +317,7 @@ void MushroomLight::update(float deltaTime) {
 		// Compute global transforms at each node
 		int rootNode = skin.joints[0];
 		glm::mat4 parentTransform(1.0f);
-		std::unordered_map<int, glm::mat4> globalNodeTransforms(skin.joints.size());
+		std::unordered_map<int, glm::mat4> globalNodeTransforms(model.nodes.size());
 		computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0), globalNodeTransforms);
 		updateSkinning(globalNodeTransforms);
 	}
@@ -343,7 +347,7 @@ bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
 }
 
 void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
-				tinygltf::Model &model, tinygltf::Mesh &mesh) {
+				tinygltf::Model &model, tinygltf::Mesh &mesh, int nodeIndex) {
 
 	std::map<int, GLuint> vbos;
 	for (size_t i = 0; i < model.bufferViews.size(); ++i) {
@@ -351,13 +355,13 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 
 		int target = bufferView.target;
 		
-		if (bufferView.target == 0) { 
-			// The bufferView with target == 0 in our model refers to 
-			// the skinning weights, for 25 joints, each 4x4 matrix (16 floats), totaling to 400 floats or 1600 bytes. 
-			// So it is considered safe to skip the warning.
-			//std::cout << "WARN: bufferView.target is zero" << std::endl;
-			continue;
-		}
+		// if (bufferView.target == 0) { 
+		// 	// The bufferView with target == 0 in our model refers to 
+		// 	// the skinning weights, for 25 joints, each 4x4 matrix (16 floats), totaling to 400 floats or 1600 bytes. 
+		// 	// So it is considered safe to skip the warning.
+		// 	//std::cout << "WARN: bufferView.target is zero" << std::endl;
+		// 	continue;
+		// }
 
 		const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
 		GLuint vbo;
@@ -412,6 +416,9 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 		PrimitiveObject primitiveObject;
 		primitiveObject.vao = vao;
 		primitiveObject.vbos = vbos;
+		primitiveObject.meshIndex = nodeIndex;
+		primitiveObject.primitiveIndex = i;
+		
 		primitiveObjects.push_back(primitiveObject);
 
 		glBindVertexArray(0);
@@ -512,7 +519,7 @@ void MushroomLight::bindModelNodes(std::vector<PrimitiveObject> &primitiveObject
 						tinygltf::Node &node) {
 	// Bind buffers for the current mesh at the node
 	if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
-		bindMesh(primitiveObjects, model, model.meshes[node.mesh]);
+		bindMesh(primitiveObjects, model, model.meshes[node.mesh], node.mesh);
 	}
 
 	// Recursive into children nodes
@@ -535,12 +542,22 @@ std::vector<PrimitiveObject> MushroomLight::bindModel(tinygltf::Model &model) {
 }
 
 void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
-				tinygltf::Model &model, tinygltf::Mesh &mesh) {
-	
+				tinygltf::Model &model, tinygltf::Mesh &mesh, int meshIndex) {
+    
 	for (size_t i = 0; i < mesh.primitives.size(); ++i) 
 	{
-		GLuint vao = primitiveObjects[i].vao;
-		std::map<int, GLuint> vbos = primitiveObjects[i].vbos;
+		// Find the matching PrimitiveObject for this mesh and primitive index
+		int foundIndex = -1;
+		for (size_t j = 0; j < primitiveObjects.size(); ++j) {
+			if (primitiveObjects[j].meshIndex == meshIndex && primitiveObjects[j].primitiveIndex == (int)i) {
+				foundIndex = (int)j;
+				break;
+			}
+		}
+		if (foundIndex == -1) continue;
+
+		GLuint vao = primitiveObjects[foundIndex].vao;
+		std::map<int, GLuint> vbos = primitiveObjects[foundIndex].vbos;
 
 		glBindVertexArray(vao);
 
@@ -561,7 +578,7 @@ void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitive
 						tinygltf::Model &model, tinygltf::Node &node) {
 	// Draw the mesh at the node, and recursively do so for children nodes
 	if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
-		drawMesh(primitiveObjects, model, model.meshes[node.mesh]);
+		drawMesh(primitiveObjects, model, model.meshes[node.mesh], node.mesh);
 	}
 	for (size_t i = 0; i < node.children.size(); i++) {
 		drawModelNodes(primitiveObjects, model, model.nodes[node.children[i]]);

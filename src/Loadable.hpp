@@ -15,6 +15,8 @@
 struct PrimitiveObject {
 	GLuint vao;
 	std::map<int, GLuint> vbos;
+	int meshIndex;
+	int primitiveIndex;
 };
 // Skinning 
 struct SkinObject {
