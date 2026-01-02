@@ -79,6 +79,8 @@ public:
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
+        // Enable double side rendering to avoid z-fighting
+        
 
         scene.render(projection * view);
     }

@@ -15,7 +15,7 @@ void MushroomLight::initialize(bool isSkinned) {
 	modelTime = 0.0f;
 
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
-	scale = 15.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 	// Modify your path if needed
 	if (!loadModel(model, "../assets/arch_tree/scene.gltf")) {
@@ -79,8 +79,10 @@ void MushroomLight::render(glm::mat4 cameraMatrix) {
     shader->setUniVec3("lightPosition", lightPosition);
     shader->setUniVec3("lightIntensity", lightIntensity);
 
-    // Draw the GLTF model
-    drawModel(primitiveObjects, model);
+	// Draw the GLTF model
+	glDisable(GL_CULL_FACE);
+	drawModel(primitiveObjects, model);
+	glEnable(GL_CULL_FACE);
 }
 
 
@@ -213,69 +215,73 @@ void MushroomLight::updateAnimation(
               		bool interpolated
               	) 
 {
-	// There are many channels so we have to accumulate the transforms 
+	// Build per-node TRS (start from node's base TRS values)
+	struct TRS { glm::vec3 T; glm::quat R; glm::vec3 S; };
+	std::vector<TRS> trs(model.nodes.size());
+	for (size_t i = 0; i < model.nodes.size(); ++i) {
+		const tinygltf::Node &n = model.nodes[i];
+		trs[i].T = (n.translation.size() == 3) ? glm::vec3(n.translation[0], n.translation[1], n.translation[2]) : glm::vec3(0.0f);
+		if (n.rotation.size() == 4) trs[i].R = glm::quat(n.rotation[3], n.rotation[0], n.rotation[1], n.rotation[2]);
+		else trs[i].R = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		trs[i].S = (n.scale.size() == 3) ? glm::vec3(n.scale[0], n.scale[1], n.scale[2]) : glm::vec3(1.0f);
+	}
+
+	// Apply animation channels to TRS
 	for (const auto &channel : anim.channels) {
-		
 		int targetNodeIndex = channel.target_node;
 		const auto &sampler = anim.samplers[channel.sampler];
-		
-		// Access output (value) data for the channel
+
 		const tinygltf::Accessor &outputAccessor = model.accessors[sampler.output];
 		const tinygltf::BufferView &outputBufferView = model.bufferViews[outputAccessor.bufferView];
 		const tinygltf::Buffer &outputBuffer = model.buffers[outputBufferView.buffer];
 
-		// Calculate current animation time (wrap if necessary)
 		const std::vector<float> &times = animationObject.samplers[channel.sampler].input;
 		float animationTime = fmod(time, times.back());
-		
-		// ----------------------------------------------------------
-		// keyframe for getting animation data 
-		// this keyframe points to the previous keyframe.
-		// ----------------------------------------------------------
 		int keyframeIndex = findKeyframeIndex(times, animationTime);
-
-		const unsigned char *outputPtr = &outputBuffer.data[outputBufferView.byteOffset + outputAccessor.byteOffset];
-		const float *outputBuf = reinterpret_cast<const float*>(outputPtr);
-
-		// -----------------------------------------------------------
-		// Linear interpolation for smooth interpolation
-		// -----------------------------------------------------------
 		int nextFrameIndex = glm::min(keyframeIndex + 1, static_cast<int>(times.size() - 1));
 		float prevFrameTime = times[keyframeIndex];
 		float nextFrameTime = times[nextFrameIndex];
 		float _t = (animationTime - prevFrameTime) / (nextFrameTime - prevFrameTime);
-		
+
+		const unsigned char *outputPtr = &outputBuffer.data[outputBufferView.byteOffset + outputAccessor.byteOffset];
+
 		if (channel.target_path == "translation") {
-			glm::vec3 translation0, translation1;
-			memcpy(&translation0, outputPtr + keyframeIndex * 3 * sizeof(float), 3 * sizeof(float));
-			
-			glm::vec3 translation = translation0;
+			glm::vec3 t0, t1;
+			memcpy(&t0, outputPtr + keyframeIndex * 3 * sizeof(float), 3 * sizeof(float));
 			if (interpolated) {
-				memcpy(&translation1, outputPtr + nextFrameIndex * 3 * sizeof(float), 3 * sizeof(float));
-				translation = (1 - _t) * translation0 + (_t) * translation1;
+				memcpy(&t1, outputPtr + nextFrameIndex * 3 * sizeof(float), 3 * sizeof(float));
+				trs[targetNodeIndex].T = (1 - _t) * t0 + _t * t1;
+			} else {
+				trs[targetNodeIndex].T = t0;
 			}
-			nodeTransforms[targetNodeIndex] = glm::translate(nodeTransforms[targetNodeIndex], translation);
 		} else if (channel.target_path == "rotation") {
-			glm::quat rotation0, rotation1;
-			memcpy(&rotation0, outputPtr + keyframeIndex * 4 * sizeof(float), 4 * sizeof(float));
-
-			glm::quat rotation = rotation0;
+			glm::quat r0, r1;
+			memcpy(&r0, outputPtr + keyframeIndex * 4 * sizeof(float), 4 * sizeof(float));
 			if (interpolated) {
-				memcpy(&rotation1, outputPtr + nextFrameIndex * 4 * sizeof(float), 4 * sizeof(float));
-				rotation = glm::slerp(rotation0, rotation1, _t);
+				memcpy(&r1, outputPtr + nextFrameIndex * 4 * sizeof(float), 4 * sizeof(float));
+				trs[targetNodeIndex].R = glm::slerp(r0, r1, _t);
+			} else {
+				trs[targetNodeIndex].R = r0;
 			}
-			nodeTransforms[targetNodeIndex] *= glm::mat4_cast(rotation);
 		} else if (channel.target_path == "scale") {
-			glm::vec3 scale0, scale1;
-			memcpy(&scale0, outputPtr + keyframeIndex * 3 * sizeof(float), 3 * sizeof(float));
-
-			glm::vec3 scale = scale0;
+			glm::vec3 s0, s1;
+			memcpy(&s0, outputPtr + keyframeIndex * 3 * sizeof(float), 3 * sizeof(float));
 			if (interpolated) {
-				memcpy(&scale1, outputPtr + nextFrameIndex * 3 * sizeof(float), 3 * sizeof(float));
-				scale = (1 - _t) * scale0 + (_t) * scale1;
+				memcpy(&s1, outputPtr + nextFrameIndex * 3 * sizeof(float), 3 * sizeof(float));
+				trs[targetNodeIndex].S = (1 - _t) * s0 + _t * s1;
+			} else {
+				trs[targetNodeIndex].S = s0;
 			}
-			nodeTransforms[targetNodeIndex] = glm::scale(nodeTransforms[targetNodeIndex], scale);
 		}
+	}
+
+	// Compose local matrices and write back to nodeTransforms
+	for (size_t i = 0; i < model.nodes.size(); ++i) {
+		glm::mat4 local = glm::mat4(1.0f);
+		local = glm::translate(local, trs[i].T);
+		local *= glm::mat4_cast(trs[i].R);
+		local = glm::scale(local, trs[i].S);
+		nodeTransforms[i] = local;
 	}
 }
 
@@ -306,22 +312,33 @@ void MushroomLight::update(float deltaTime) {
 		const AnimationObject &animationObject = animationObjects[0];
 		
 		const tinygltf::Skin &skin = model.skins[0];
+		// Initialize local node transforms from the model (so non-animated nodes keep their base transform)
 		std::unordered_map<int, glm::mat4> nodeTransforms(model.nodes.size());
-		for (size_t i = 0; i < nodeTransforms.size(); ++i) {
-			nodeTransforms[i] = glm::mat4(1.0);
+		for (size_t i = 0; i < model.nodes.size(); ++i) {
+			nodeTransforms[i] = getNodeTransform(model.nodes[i]);
 		}
-		
+
+		// Apply animation channels to local transforms
 		updateAnimation(model, animation, animationObject, modelTime, nodeTransforms, true);
-		
-		// Local transforms are already changed. Use it to recompute globals
-		// Compute global transforms at each node
-		int rootNode = skin.joints[0];
-		glm::mat4 parentTransform(1.0f);
+
+		// Compute global transforms for the whole scene (all scene roots)
 		std::unordered_map<int, glm::mat4> globalNodeTransforms(model.nodes.size());
-		computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0), globalNodeTransforms);
+		const tinygltf::Scene &scene = model.scenes[model.defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); ++i) {
+			int rootNode = scene.nodes[i];
+			computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0f), globalNodeTransforms);
+		}
+
+		// Update skin joint matrices from the computed global transforms
 		updateSkinning(globalNodeTransforms);
+
+		// Use animated global transforms for drawing
+		globalMeshTransforms = globalNodeTransforms;
 	}
-	updateMeshTransforms();
+	else {
+		// No animations: use static transforms from model nodes
+		updateMeshTransforms();
+	}
 }
 
 bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
@@ -575,13 +592,25 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 }
 
 void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
-						tinygltf::Model &model, tinygltf::Node &node) {
+						tinygltf::Model &model, int nodeIndex) {
+	// Compute node-specific transform from precomputed global transforms
+	auto it = globalMeshTransforms.find(nodeIndex);
+	glm::mat4 nodeGlobal = (it != globalMeshTransforms.end()) ? it->second : glm::mat4(1.0f);
+
+	// If this node has a skin, jointMatrices already include the node's global influence,
+	// so avoid applying nodeGlobal again (would double-transform). Otherwise set nodeMatrix.
+	const tinygltf::Node &node = model.nodes[nodeIndex];
+	if (node.skin >= 0) {
+		shader->setUniMat4("nodeMatrix", glm::mat4(1.0f));
+	} else {
+		shader->setUniMat4("nodeMatrix", nodeGlobal);
+	}
 	// Draw the mesh at the node, and recursively do so for children nodes
 	if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
 		drawMesh(primitiveObjects, model, model.meshes[node.mesh], node.mesh);
 	}
 	for (size_t i = 0; i < node.children.size(); i++) {
-		drawModelNodes(primitiveObjects, model, model.nodes[node.children[i]]);
+		drawModelNodes(primitiveObjects, model, node.children[i]);
 	}
 }
 
@@ -590,6 +619,6 @@ void MushroomLight::drawModel(const std::vector<PrimitiveObject>& primitiveObjec
 	// Draw all nodes
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];
 	for (size_t i = 0; i < scene.nodes.size(); ++i) {
-		drawModelNodes(primitiveObjects, model, model.nodes[scene.nodes[i]]);
+		drawModelNodes(primitiveObjects, model, scene.nodes[i]);
 	}
 }

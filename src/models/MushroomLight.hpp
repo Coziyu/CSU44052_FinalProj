@@ -92,7 +92,7 @@ struct MushroomLight : public Entity {
 	void drawModelNodes(
 		const std::vector<PrimitiveObject>& primitiveObjects,
 		tinygltf::Model &model, 
-		tinygltf::Node &node
+		int nodeIndex
 	);
 	void drawModel(
 		const std::vector<PrimitiveObject>& primitiveObjects,

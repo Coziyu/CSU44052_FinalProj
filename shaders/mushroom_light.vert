@@ -14,6 +14,7 @@ out vec3 worldNormal;
 
 uniform mat4 MVP;
 uniform mat4 jointMatrices[100];
+uniform mat4 nodeMatrix;
 uniform bool isSkinned;
 
 void main() {
@@ -27,15 +28,17 @@ void main() {
     vec4 worldPosition4 = vec4(vertexPosition, 1.0);
     if (isSkinned) {
         worldPosition4 = skinMat * worldPosition4;
+        // Apply node transform after skinning
+        worldPosition4 = nodeMatrix * worldPosition4;
+        gl_Position = MVP * worldPosition4;
+        mat3 normalMat = mat3(nodeMatrix * skinMat);
+        worldPosition = worldPosition4.xyz;
+        worldNormal = normalize(normalMat * vertexNormal);
+    } else {
+        worldPosition4 = nodeMatrix * worldPosition4;
+        gl_Position = MVP * worldPosition4;
+        mat3 normalMat = mat3(nodeMatrix);
+        worldPosition = worldPosition4.xyz;
+        worldNormal = normalize(normalMat * vertexNormal);
     }
-
-    // Transform vertex
-    gl_Position =  MVP * worldPosition4;
-
-    // Get rid of the translation part of this matrix.
-    mat3 normalMat = isSkinned ? mat3(skinMat) : mat3(1.0);
-
-    // World-space geometry 
-    worldPosition = worldPosition4.xyz;
-    worldNormal = normalize(normalMat * vertexNormal);
 }
