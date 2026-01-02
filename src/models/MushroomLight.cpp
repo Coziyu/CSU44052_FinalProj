@@ -12,7 +12,7 @@ void MushroomLight::initialize() {
 	modelTime = 0.0f;
 
 	// Modify your path if needed
-	if (!loadModel(model, "../assets/bot.gltf")) {
+	if (!loadModel(model, "../assets/MushroomLight/scene.gltf")) {
 		return;
 	}
 

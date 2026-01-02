@@ -14,7 +14,7 @@
 
 class Shader {
     private:
-    GLuint programID;
+    GLuint id;
     
     public:
     Shader(const char* vertexShaderSource, const char* fragmentShaderSource);

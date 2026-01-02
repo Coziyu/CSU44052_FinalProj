@@ -25,21 +25,23 @@ add_subdirectory(external)
 
 
 add_executable(wonderland
+src/core/Shader.cpp
+src/core/Camera.cpp
 src/models/MushroomLight.cpp
 src/Entities.cpp
 src/Window.cpp
 src/ResourceManager.cpp
 src/utils.cpp
 src/Terrain.cpp
-src/Camera.cpp
 src/Perlin.cpp
-src/Shader.cpp
 src/main.cpp
 )
 
 target_include_directories(wonderland
     PRIVATE
         src/
+        src/core/
+        src/models/
 )
 target_include_directories(wonderland
     SYSTEM PRIVATE
@@ -47,6 +49,7 @@ target_include_directories(wonderland
         external/glm-0.9.7.1/
         external/glad-opengl-3.3/include/
         external/tinygltf-2.9.3/
+        external/json/
         external/
 )
 

@@ -3,11 +3,11 @@
 #define INPUTMANAGER_HPP
 
 #include "Camera.hpp"
-#include "WindowManager.hpp"
+#include "Window.hpp"
 
 class InputManager {
 public:
-    InputManager(WindowManager& wm, Camera& cam) : window(wm), camera(cam) {
+    InputManager(Window& wm, Camera& cam) : window(wm), camera(cam) {
         window.registerMouseCallback([this](double x, double y, bool lock){ camera.handleMouseInput(x,y,lock); });
     }
 
@@ -21,7 +21,7 @@ public:
     }
 
 private:
-    WindowManager& window;
+    Window& window;
     Camera& camera;
 };
 

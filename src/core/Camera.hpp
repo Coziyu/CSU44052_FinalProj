@@ -47,6 +47,12 @@ class Camera {
         float movementSpeed;
         float mouseSensitivity;
 
+        // Projection params
+        float fov;
+        float zNear;
+        float zFar;
+        float aspect;
+
         // mouse
         double lastMouseX;
         double lastMouseY;
@@ -68,7 +74,7 @@ class Camera {
             glm::vec3 startFront = glm::vec3(0.0f, 0.0f, 1.0f)
         );
         glm::mat4 getViewMatrix() const;
-        
+        glm::mat4 getProjectionMatrix() const;
         /**
         * @brief Handles keyboard input to move the camera.
         * This is to be added as a callback to the window
@@ -87,6 +93,11 @@ class Camera {
         void resetFallSpeed();
 
         void setOnGround(bool onGround);
+
+        void setFov(float fov);
+        void setZNear(float zNear);
+        void setZFar(float zFar);
+        void setAspect(float aspect);
 
     private:
         /**

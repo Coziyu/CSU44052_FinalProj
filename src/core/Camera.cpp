@@ -30,6 +30,10 @@ glm::mat4 Camera::getViewMatrix() const {
     return glm::lookAt(position, position + front, top);
 }
 
+glm::mat4 Camera::getProjectionMatrix() const {
+    return glm::perspective(glm::radians(fov), aspect, zNear, zFar);
+}
+
 void Camera::processInput(Window& window, const float deltaTime) {
     static int prevCapsState = GLFW_RELEASE;
 
@@ -84,6 +88,14 @@ void Camera::resetFallSpeed() {
 void Camera::setOnGround(bool onGround) { 
     this->onGround = onGround;
 }
+
+void Camera::setFov(float fov) { this->fov = fov; }
+
+void Camera::setZNear(float zNear) { this->zNear = zNear; }
+
+void Camera::setZFar(float zFar) { this->zFar = zFar; }
+
+void Camera::setAspect(float aspect) { this->aspect = aspect; }
 
 void Camera::handleMovement(DIRECTIONS direction, const float deltaTime) {
     float speed = movementSpeed * deltaTime;

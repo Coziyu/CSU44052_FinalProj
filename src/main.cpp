@@ -17,7 +17,6 @@
 
 #include "GUIManager.hpp"
 #include "Timer.hpp"
-#include "WindowManager.hpp"
 #include "InputManager.hpp"
 #include "models/MushroomLight.hpp"
 
@@ -34,12 +33,10 @@ public:
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
-        mushroomLight.initialize();
     }
 
     void update(float dt) {
         terrain.update(dt);
-        mushroomLight.update(dt); // TODO, give absolute time or update mushroomLight to take dt, and accumulate it's own time
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
@@ -52,7 +49,6 @@ public:
         debugAxes.render(vp);
         mybox.render(vp);
         terrain.render(vp);
-        mushroomLight.render(vp);
     }
 
 private:
@@ -60,7 +56,6 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    MushroomLight mushroomLight;
 };
 
 
@@ -68,16 +63,14 @@ private:
 // we will just put the render code here organisation
 class Renderer {
 public:
-    void renderScene(Scene& scene, Camera& camera, const WindowManager& window, float viewDist) {
+    void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist) {
         glClearColor(0.7f, 0.4f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        camera.setZFar(viewDist);
         glm::mat4 view = camera.getViewMatrix();
-        glm::mat4 projection = glm::perspective(
-            glm::radians(45.0f),
-            static_cast<float>(window.width()) / static_cast<float>(window.height()),
-            10.0f, viewDist
-        );
+        camera.setAspect(window.getAspectRatio());
+        glm::mat4 projection = camera.getProjectionMatrix();
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
@@ -88,13 +81,18 @@ public:
 
 class Application {
 public:
-    Application() : windowManager(1366,768,"Wonderland"), camera(glm::vec3(0.0f,300.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f), glm::vec3(0.0f,100.0f,0.0f) - glm::vec3(300.0f,300.0f,300.0f)), inputManager(windowManager, camera) {}
+    Application() : 
+        mainWindow(1366,768,"Wonderland"), 
+        camera(glm::vec3(0.0f,300.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f), glm::vec3(0.0f,100.0f,0.0f) - glm::vec3(300.0f,300.0f,300.0f)), 
+        inputManager(mainWindow, camera) {}
 
     bool initialize() {
-        if (!windowManager.initialize())
-            return false;
-        gui.initialize(windowManager.getGLFWwindow());
+        mainWindow.initialize();
+        gui.initialize(mainWindow.window);
         scene.initialize();
+        camera.setFov(45);
+        camera.setZNear(10.0f);
+        camera.setZFar(10000.0f);
         return true;
     }
 
@@ -107,14 +105,14 @@ public:
         float peakHeight = 800.0f;
         bool terrainWireframe = false;
 
-        while (!windowManager.shouldClose()) {
+        while (!mainWindow.shouldClose()) {
             timer.tick();
             float dt = timer.getDeltaTime();
 
-            windowManager.pollEvents();
+            mainWindow.pollEvents();
 
             if (ImGui::IsKeyReleased(ImGuiKey_Tab)){
-                windowManager.toggleCursorLock();
+                mainWindow.toggleCursorLock();
                 std::cout << "menu toggled\n";
             }
 
@@ -126,11 +124,11 @@ public:
             camera.setOnGround(scene.terrGroundConstraint(camera.position));
 
             // Render scene
-            renderer.renderScene(scene, camera, windowManager, viewDist);
+            renderer.renderScene(scene, camera, mainWindow, viewDist);
 
             // UI
             gui.newFrame();
-            if (!windowManager.cursorLocked()) {
+            if (!mainWindow.cursorLocked()) {
                 ImGui::Begin("Terrain Parameters");
                 ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderInt("Octaves", &octaves, 1, 20);
@@ -151,7 +149,7 @@ public:
             }
             gui.render();
 
-            windowManager.swapBuffers();
+            mainWindow.swapBuffers();
         }
 
         gui.shutdown();
@@ -160,7 +158,7 @@ public:
     }
 
 private:
-    WindowManager windowManager;
+    Window mainWindow;
     Timer timer;
     Camera camera;
     Scene scene;

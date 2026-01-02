@@ -42,6 +42,8 @@ class Window {
         void toggleCursorLock();
         bool cursorLocked() const;
 
+        float getAspectRatio() const;
+
 
     private:
         static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

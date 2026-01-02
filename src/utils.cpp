@@ -1,4 +1,5 @@
 #include "utils.hpp"
+
 // Anticlockwise version
 std::vector<unsigned int> generate_grid_indices_acw(const unsigned int size) {
     std::vector<unsigned int> r;

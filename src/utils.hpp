@@ -1,7 +1,10 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
+#ifndef GL_H
+#define GL_H
 #include <glad/gl.h>
 #include <glfw/glfw3.h>
+#endif 
 #include <glm/glm.hpp>
 
 #include <string>

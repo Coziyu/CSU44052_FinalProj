@@ -115,6 +115,10 @@ bool Window::cursorLocked() const {
     return isCursorLocked;
 }
 
+float Window::getAspectRatio() const {
+    return static_cast<float>(width) / static_cast<float>(height);
+}
+
 void Window::glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Window *win = static_cast<Window *>(glfwGetWindowUserPointer(window));
     if (!win) {
