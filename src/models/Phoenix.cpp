@@ -42,5 +42,5 @@ void Phoenix::update(float dt) {
 
 std::string Phoenix::modelDirectory = "../assets/phoenix_bird/";
 std::string Phoenix::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string Phoenix::vertexShaderPath = "../shaders/phoenix.vert";
-std::string Phoenix::fragmentShaderPath = "../shaders/phoenix.frag";
+std::string Phoenix::vertexShaderPath = "../shaders/pbr.vert";
+std::string Phoenix::fragmentShaderPath = "../shaders/pbr.frag";

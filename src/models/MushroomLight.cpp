@@ -17,5 +17,5 @@ void MushroomLight::update(float dt) {
 
 std::string MushroomLight::modelDirectory = "../assets/MushroomLight/";
 std::string MushroomLight::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string MushroomLight::vertexShaderPath = "../shaders/MushroomLight.vert";
-std::string MushroomLight::fragmentShaderPath = "../shaders/MushroomLight.frag";
+std::string MushroomLight::vertexShaderPath = "../shaders/pbr.vert";
+std::string MushroomLight::fragmentShaderPath = "../shaders/pbr.frag";

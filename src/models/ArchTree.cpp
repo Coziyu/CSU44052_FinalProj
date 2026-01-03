@@ -4,5 +4,5 @@ void ArchTree::initialize(bool isSkinned) { ModelEntity::initialize(isSkinned, m
 
 std::string ArchTree::modelDirectory = "../assets/arch_tree/";
 std::string ArchTree::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string ArchTree::vertexShaderPath = "../shaders/arch_tree.vert";
-std::string ArchTree::fragmentShaderPath = "../shaders/arch_tree.frag";
+std::string ArchTree::vertexShaderPath = "../shaders/pbr.vert";
+std::string ArchTree::fragmentShaderPath = "../shaders/pbr.frag";
