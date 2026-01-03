@@ -25,20 +25,20 @@ add_subdirectory(external)
 
 
 add_executable(wonderland
-src/core/Shader.cpp
 src/core/Camera.cpp
-src/core/Texture.cpp
-src/core/ModelEntity.cpp
 src/core/Entities.cpp
-src/models/Phoenix.cpp
+src/core/ModelEntity.cpp
+src/core/Perlin.cpp
+src/core/Shader.cpp
+src/core/Texture.cpp
 src/models/ArchTree.cpp
 src/models/MushroomLight.cpp
+src/models/Phoenix.cpp
 src/tinygltf_impl.cpp
 src/Window.cpp
 src/ResourceManager.cpp
 src/utils.cpp
 src/Terrain.cpp
-src/Perlin.cpp
 src/main.cpp
 )
 

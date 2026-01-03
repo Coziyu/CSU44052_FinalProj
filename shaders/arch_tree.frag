@@ -9,6 +9,7 @@ out vec3 finalColor;
 
 uniform vec3 lightPosition;
 uniform vec3 lightIntensity;
+uniform vec3 cameraPos;
 uniform samplerCube shadowCubemap;
 uniform float farPlane;
 
@@ -38,15 +39,17 @@ float calculateShadow(vec3 fragPos)
     vec3 lightToFrag = fragPos - lightPosition;
     float currentDepth = length(lightToFrag);
     
+    // Sample from shadow cubemap
     float closestDepth = texture(shadowCubemap, lightToFrag).r;
-    closestDepth *= farPlane;  // Back to real distance
+    closestDepth *= farPlane;  // Scale back from [0,1] to world distance
     
-    // Adaptive bias: scales with distance to reduce artifacts at far distances
-    float bias = max(0.005 * currentDepth, 0.1);
+    // Bias to reduce shadow acne
+    float bias = max(0.05, 0.005 * currentDepth);
     
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    float shadow = (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
     
-    return 1.0 - shadow;
+	return 1.0; // DOESN'T WORK??????
+    // return 1.0 - shadow; 
 }
 
 void main()
@@ -82,15 +85,15 @@ void main()
 	vec3 N = normalize(worldNormal);
 	if (hasNormalTex) {
 		vec3 T = normalize(fragTangent.xyz);
-		vec3 B = cross(N, T) * fragTangent.w;
-		mat3 TBN = mat3(T, B, N);
+		vec3 B = cross(worldNormal, T) * fragTangent.w;
+		mat3 TBN = mat3(T, B, normalize(worldNormal));
 		vec3 nmap = texture(normalTex, fragUV).rgb;
 		nmap = nmap * 2.0 - 1.0;
 		N = normalize(TBN * nmap);
 	}
 
 	// View and light vectors
-	vec3 V = normalize(-worldPosition); // camera at origin in view space (assuming vp used)
+	vec3 V = normalize(cameraPos - worldPosition); // camera at origin in view space (assuming vp used)
 	vec3 L = normalize(lightPosition - worldPosition);
 	vec3 H = normalize(V + L);
 
@@ -121,7 +124,8 @@ void main()
 
 	vec3 kD = (1.0 - F) * (1.0 - metallic);
 
-	vec3 radiance = lightIntensity / max(dot(lightPosition - worldPosition, lightPosition - worldPosition), 1.0);
+	float distToLight = length(lightPosition - worldPosition);
+	vec3 radiance = lightIntensity / (distToLight * distToLight + 0.1);
 
 	// Calculate shadow
 	float shadow = calculateShadow(worldPosition);
@@ -129,7 +133,7 @@ void main()
 	vec3 Lo = (kD * albedo / 3.14159265 + specular) * radiance * NdotL * shadow;
 
 	// Ambient (approx)
-	vec3 ambient = vec3(0.03) * albedo * ao;
+	vec3 ambient = vec3(0.09) * albedo * ao;
 
 	vec3 color = ambient + Lo + emissive;
 
@@ -137,5 +141,7 @@ void main()
 	color = color / (color + vec3(1.0));
 	color = pow(color, vec3(1.0/2.2));
 
+	
 	finalColor = color;
 }
+

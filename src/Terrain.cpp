@@ -161,7 +161,7 @@ void Terrain::renderDepth(std::shared_ptr<Shader> depthShader, const LightingPar
     glBindVertexArray(0);
 }
 
-void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams, float farPlane) {
+void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
     glm::mat4 modelMatrix = glm::mat4();
     modelMatrix = glm::translate(modelMatrix, position);
     // Special scale factor:

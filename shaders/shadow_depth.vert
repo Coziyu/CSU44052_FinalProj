@@ -5,7 +5,7 @@ layout(location = 2) in vec3 aNorm;
 layout(location = 3) in vec4 jointIndices;
 layout(location = 4) in vec4 jointWeights;
 
-uniform mat4 Model;  // (position/scale/rotation) we want to have this here to account for skinning
+uniform mat4 Model;  // position/scale/rotation
 uniform mat4 nodeMatrix;  // per-node transform for skeletal models
 uniform mat4 jointMatrices[100];  // bone transforms for animation
 uniform bool isSkinned;  // is this a skeletal model?

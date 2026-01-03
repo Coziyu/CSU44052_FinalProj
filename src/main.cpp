@@ -64,7 +64,7 @@ public:
     void terrSetWireframeMode(bool enabled) { terrain.setWireframeMode(enabled); }
     void updateLightIndicator(const glm::vec3& lightPos) { lightIndicator.position = lightPos; }
 
-    void render(const glm::mat4& vp, const LightingParams& lightingParams, float farPlane) {
+    void render(const glm::mat4& vp, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
         debugAxes.render(vp);
         mybox.render(vp);
         lightIndicator.render(vp);  // Visualize light source position
@@ -73,10 +73,10 @@ public:
         glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_CUBE_MAP, shadowMap.depthCubemap);
         
-        terrain.render(vp, lightingParams, farPlane);
-        archTree.render(vp, lightingParams, farPlane);
-        phoenix.render(vp, lightingParams, farPlane);
-        mushroomLight.render(vp, lightingParams, farPlane);
+        terrain.render(vp, lightingParams, cameraPos, farPlane);
+        archTree.render(vp, lightingParams, cameraPos, farPlane);
+        phoenix.render(vp, lightingParams, cameraPos, farPlane);
+        mushroomLight.render(vp, lightingParams, cameraPos, farPlane);
     }
 
     void renderDepthPass(const LightingParams& lightingParams) {
@@ -128,7 +128,7 @@ public:
         // Enable double side rendering to avoid z-fighting
         
 
-        scene.render(projection * view, lightingParams, viewDist);
+        scene.render(projection * view, lightingParams, camera.getPosition(), viewDist);
     }
 };
 
@@ -164,7 +164,7 @@ public:
 
             mainWindow.pollEvents();
 
-            if (ImGui::IsKeyReleased(ImGuiKey_Tab)){
+            if (ImGui::IsKeyReleased(ImGuiKey_Tab)) {
                 mainWindow.toggleCursorLock();
                 std::cout << "menu toggled\n";
             }

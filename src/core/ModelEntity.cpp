@@ -81,7 +81,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	}
 }
 
-void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, float farPlane) {
+void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
     shader->use();
     
     // Set camera
@@ -113,6 +113,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     // Set light data 
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
     shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
+    shader->setUniVec3("cameraPos", cameraPos);
     shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
 
 	// Draw the GLTF model
@@ -124,7 +125,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
 void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
 	depthShader->use();
 	
-	// Set model matrix
+	// build the model transform (position, scale, rotation)
 	glm::mat4 modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, position);
 	modelMatrix = glm::scale(modelMatrix, scale);
@@ -132,14 +133,14 @@ void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
 	
 	depthShader->setUniMat4("Model", modelMatrix);
 	
-	// Set animation data for skinning if applicable
+	// if this model has skeletal animation, we need to pass the joint transforms
 	if (!skinObjects.empty()) {
 		depthShader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
 	}
 	depthShader->setUniBool("isSkinned", isSkinned);
 	
-	//! Note: we pass depthShader to drawModel so it sets nodeMatrix on the right shader
-	// otherwise shadows get messed up cause nodeMatrix goes to the wrong place
+	// important: pass depthShader to drawModel so it sets nodeMatrix on the right shader
+	// otherwise shadows get messed up because nodeMatrix goes to the wrong place
 	glDisable(GL_CULL_FACE);
 	drawModel(primitiveObjects, model, depthShader);
 	glEnable(GL_CULL_FACE);
@@ -735,10 +736,10 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 
 void ModelEntity::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
 						tinygltf::Model &model, int nodeIndex, std::shared_ptr<Shader> shaderToUse) {
-	// Use provided shader, or fall back to member shader
+	// use the shader we passed in, or default to the member shader for normal rendering
 	std::shared_ptr<Shader> activeShader = shaderToUse ? shaderToUse : shader;
 	
-	// Compute node-specific transform from precomputed global transforms
+	// grab the node's transformation from our precalculated map
 	auto it = globalMeshTransforms.find(nodeIndex);
 	glm::mat4 nodeGlobal = (it != globalMeshTransforms.end()) ? it->second : glm::mat4(1.0f);
 

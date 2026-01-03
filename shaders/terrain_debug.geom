@@ -1,9 +1,9 @@
 #version 330 core
 
-layout(points) in;          // Input: points
-layout(line_strip, max_vertices = 2) out; // Output: lines
+layout(points) in;  
+layout(line_strip, max_vertices = 2) out; 
 
-uniform mat4 MVP; // Model-View-Projection matrix
+uniform mat4 MVP; 
 
 in vec3 fragNorm[];  // normal passed from vertex shader
 in vec3 fragPos[]; // position passed from vertex shader

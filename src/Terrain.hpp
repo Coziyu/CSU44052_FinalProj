@@ -43,7 +43,7 @@ class Terrain : public DynamicEntity {
 
     public:
         Terrain(glm::vec3 _scale, int _resolution);
-        void render(glm::mat4 vp, const LightingParams& lightingParams, float farPlane) override;
+        void render(glm::mat4 vp, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) override;
         void renderDepth(std::shared_ptr<Shader> depthShader, const LightingParams& lightingParams);
         void update(float deltaTime) override;
         void updateOffset(glm::vec3 newOffset);
