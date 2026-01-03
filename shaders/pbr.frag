@@ -51,10 +51,10 @@ vec3 sRGBToLinear(vec3 srgb)
 
 // Helper to select UV set
 vec2 getUV(int set) {
+    return fragUV; // Hack fix???
     if (set == 0) return fragUV;
     if (set == 1) return fragUV1;
     if (set == 2) return fragUV2;
-    return fragUV;
 }
 
 float calculateShadow(vec3 fragPos)
