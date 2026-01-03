@@ -155,6 +155,8 @@ void Terrain::renderDepth(std::shared_ptr<Shader> depthShader, const LightingPar
     // Set the Model matrix uniform using the depth shader
     depthShader->use();
     depthShader->setUniMat4("Model", modelMatrix);
+    depthShader->setUniMat4("nodeMatrix", glm::mat4(1.0f));  // Identity - terrain has no node hierarchy
+    depthShader->setUniBool("isSkinned", false);
 
     glBindVertexArray(vertexArrayID);
     glDrawElements(GL_TRIANGLES, index_buffer_data.size(), GL_UNSIGNED_INT, 0);
