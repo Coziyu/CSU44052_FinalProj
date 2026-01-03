@@ -99,7 +99,9 @@ class Camera {
         void setZFar(float zFar);
         void setAspect(float aspect);
 
-    private:
+        glm::vec3 getPosition() const;
+
+      private:
         /**
          * @brief Updates the camera's front, right, and top vectors based on the current yaw and pitch.
          * This is to be whenever the camera's parameters mutate.

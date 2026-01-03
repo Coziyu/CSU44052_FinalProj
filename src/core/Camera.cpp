@@ -171,4 +171,6 @@ void Camera::updateCameraVectors() {
 // Note: We register callbacks for methods that changes state only.
 // Otherwise, we simply use polling methods in main loop.
 
-
+glm::vec3 Camera::getPosition() const {
+    return position;
+}
