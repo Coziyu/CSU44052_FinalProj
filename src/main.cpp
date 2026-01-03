@@ -73,7 +73,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    Box lightIndicator;  // Visual indicator for light source position
+    Box lightIndicator;  // TODO: Actually replace it with a light source model.
     // ArchTree archTree;
     // Phoenix phoenix;
     MushroomLight mushroomLight;
