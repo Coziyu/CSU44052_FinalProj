@@ -135,7 +135,7 @@ public:
 class Application {
 public:
     Application() : 
-        mainWindow(1366,768,"Wonderland"), 
+        mainWindow(1680,1050,"Wonderland"), 
         camera(glm::vec3(0.0f,300.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f), glm::vec3(0.0f,100.0f,0.0f) - glm::vec3(300.0f,300.0f,300.0f)), 
         inputManager(mainWindow, camera) {}
 

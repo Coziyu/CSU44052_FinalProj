@@ -9,8 +9,8 @@
 
 class ShadowMap {
 public:
-    static constexpr unsigned int SHADOW_WIDTH = 4096;
-    static constexpr unsigned int SHADOW_HEIGHT = 4096;
+    static constexpr unsigned int SHADOW_WIDTH = 8192;
+    static constexpr unsigned int SHADOW_HEIGHT = 8192;
 
     GLuint depthCubemap;
     GLuint depthFBO;
