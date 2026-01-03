@@ -59,8 +59,8 @@ public:
         phoenix.setPosition(glm::vec3(500, 1500, 500));
         
         // Initialize mushroom spawner instead of a single mushroom
-        // Spawns mushrooms in low terrain areas (height < -100)
-        mushroomSpawner.initialize(&terrain, -100.0f, 150.0f, 2000.0f, 2500.0f, 0.3f);
+        // Spawns mushrooms in low terrain areas (height < -150)
+        mushroomSpawner.initialize(&terrain, -150.0f, 150.0f, 2500.0f, 3000.0f, 0.3f);
     }
 
     void update(float dt, Camera& camera) {

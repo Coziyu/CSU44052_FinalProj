@@ -69,7 +69,8 @@ float calculateShadow(vec3 fragPos)
     float bias = max(0.05, 0.005 * currentDepth);
     float shadow = (currentDepth - bias) > closestDepth ? 1.0 : 0.0;
     
-    return 1.0; // DOESN'T WORK??????
+    return 1.0 - shadow;
+    // return 1.0; // DOESN'T WORK??????
 }
 
 void main()

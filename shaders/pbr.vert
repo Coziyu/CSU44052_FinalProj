@@ -19,6 +19,7 @@ out vec2 fragUV1;
 out vec2 fragUV2;
 
 uniform mat4 MVP;
+uniform mat4 Model;
 uniform mat4 jointMatrices[100];
 uniform mat4 nodeMatrix;
 uniform bool isSkinned;
@@ -37,21 +38,21 @@ void main() {
         worldPosition4 = nodeMatrix * worldPosition4;
         gl_Position = MVP * worldPosition4;
         
-        mat3 normalMat = mat3(nodeMatrix * skinMat);
-        worldPosition = worldPosition4.xyz;
+        mat3 normalMat = mat3(Model * nodeMatrix * skinMat);
+        worldPosition = (Model * worldPosition4).xyz;
         worldNormal = normalize(normalMat * vertexNormal);
         
-        vec3 t = normalize(mat3(nodeMatrix * skinMat) * tangent.xyz);
+        vec3 t = normalize(mat3(Model * nodeMatrix * skinMat) * tangent.xyz);
         fragTangent = vec4(t, tangent.w);
     } else {
         worldPosition4 = nodeMatrix * worldPosition4;
         gl_Position = MVP * worldPosition4;
         
-        mat3 normalMat = mat3(nodeMatrix);
-        worldPosition = worldPosition4.xyz;
+        mat3 normalMat = mat3(Model * nodeMatrix);
+        worldPosition = (Model * worldPosition4).xyz;
         worldNormal = normalize(normalMat * vertexNormal);
         
-        vec3 t = normalize(mat3(nodeMatrix) * tangent.xyz);
+        vec3 t = normalize(mat3(Model * nodeMatrix) * tangent.xyz);
         fragTangent = vec4(t, tangent.w);
     }
 

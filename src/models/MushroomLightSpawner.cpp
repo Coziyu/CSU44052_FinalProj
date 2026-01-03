@@ -38,7 +38,7 @@ void MushroomLightSpawner::initialize(Terrain* terrain,
     std::cout << "[MushroomLightSpawner] Initialized with threshold=" << spawnHeightThreshold 
               << ", cellSize=" << cellSize << ", spawnRadius=" << spawnRadius << std::endl;
 }
-
+// ChatGPT was referred to generate this method
 int64_t MushroomLightSpawner::cellKey(int cellX, int cellZ) const {
     // Combine cell coordinates into a unique 64-bit key
     return static_cast<int64_t>(cellX) + static_cast<int64_t>(cellZ) * 1000003LL;
@@ -49,6 +49,7 @@ void MushroomLightSpawner::worldToCell(float worldX, float worldZ, int& cellX, i
     cellZ = static_cast<int>(std::floor(worldZ / cellSize));
 }
 
+// ChatGPT was referred to generate this method
 float MushroomLightSpawner::cellRandom(int cellX, int cellZ, int salt) const {
     // Simple but deterministic hash-based PRNG
     uint32_t seed = static_cast<uint32_t>(cellX * 374761393 + cellZ * 668265263 + salt * 1013904223);
@@ -117,14 +118,16 @@ bool MushroomLightSpawner::tryActivateCell(int cellX, int cellZ) {
 void MushroomLightSpawner::configureMushroom(std::shared_ptr<MushroomLight> mushroom, 
                                               const glm::vec3& position, 
                                               const glm::vec3& terrainNormal) {
-    mushroom->setPosition(position);
+    // mushroom->setPosition(position);
     mushroom->setActive(true);
     
     // Align mushroom's up vector (0, 1, 0) with terrain normal
     glm::vec3 up(0.0f, 1.0f, 0.0f);
     glm::vec3 normal = glm::normalize(terrainNormal);
     
-    // Only rotate if normal differs significantly from up
+    mushroom->setPosition(position -  up * 5.0f); 
+
+    // only rotate if normal differs significantly from up
     float dot = glm::dot(up, normal);
     if (dot < 0.9999f) {
         glm::vec3 axis = glm::cross(up, normal);
@@ -134,6 +137,13 @@ void MushroomLightSpawner::configureMushroom(std::shared_ptr<MushroomLight> mush
             float angle = std::acos(glm::clamp(dot, -1.0f, 1.0f));
             mushroom->rotationAxis = axis;
             mushroom->rotationAngle = angle;
+
+            // Since the rotation lifts the mushroom off the ground slightly,
+            // Translate the muchroom to compensate
+            glm::quat rotQuat = glm::angleAxis(angle, axis);
+            glm::vec3 adjustedUp = rotQuat * up;
+            float heightOffset = 5.0 * glm::dot(adjustedUp - up, normal) * mushroom->getScale().y;
+            mushroom->setPosition(position - heightOffset * normal);
         }
     }
 }

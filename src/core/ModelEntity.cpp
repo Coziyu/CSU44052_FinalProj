@@ -167,6 +167,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
 	glm::mat4 mvp = vp * modelMatrix;
 
     activeShader->setUniMat4("MVP", mvp);
+    activeShader->setUniMat4("Model", modelMatrix);
 	activeShader->setUniBool("isSkinned", isSkinned);
     // -----------------------------------------------------------------
     // TODO: Set animation data for linear blend skinning in shader
@@ -186,6 +187,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     activeShader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
     activeShader->setUniVec3("cameraPos", cameraPos);
     activeShader->setUniInt("shadowCubemap", 15);  // Texture unit 15
+    activeShader->setUniFloat("farPlane", farPlane);
     activeShader->setUniBool("alwaysLit", alwaysLit);
 
 	// Draw the GLTF model
