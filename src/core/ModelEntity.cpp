@@ -138,9 +138,10 @@ void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
 	}
 	depthShader->setUniBool("isSkinned", isSkinned);
 	
-	// Draw the model for depth
+	//! Note: we pass depthShader to drawModel so it sets nodeMatrix on the right shader
+	// otherwise shadows get messed up cause nodeMatrix goes to the wrong place
 	glDisable(GL_CULL_FACE);
-	drawModel(primitiveObjects, model);
+	drawModel(primitiveObjects, model, depthShader);
 	glEnable(GL_CULL_FACE);
 }
 
@@ -733,33 +734,36 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 }
 
 void ModelEntity::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
-						tinygltf::Model &model, int nodeIndex) {
+						tinygltf::Model &model, int nodeIndex, std::shared_ptr<Shader> shaderToUse) {
+	// Use provided shader, or fall back to member shader
+	std::shared_ptr<Shader> activeShader = shaderToUse ? shaderToUse : shader;
+	
 	// Compute node-specific transform from precomputed global transforms
 	auto it = globalMeshTransforms.find(nodeIndex);
 	glm::mat4 nodeGlobal = (it != globalMeshTransforms.end()) ? it->second : glm::mat4(1.0f);
 
-	// If this node has a skin, jointMatrices already include the node's global influence,
-	// so avoid applying nodeGlobal again (would double-transform). Otherwise set nodeMatrix.
+	// for skinned models, the joint matrices already handle the node transform
+	// so we don't want to apply it again or we get double transformation (bad)
 	const tinygltf::Node &node = model.nodes[nodeIndex];
 	if (node.skin >= 0) {
-		shader->setUniMat4("nodeMatrix", glm::mat4(1.0f));
+		activeShader->setUniMat4("nodeMatrix", glm::mat4(1.0f));
 	} else {
-		shader->setUniMat4("nodeMatrix", nodeGlobal);
+		activeShader->setUniMat4("nodeMatrix", nodeGlobal);
 	}
 	// Draw the mesh at the node, and recursively do so for children nodes
 	if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
 		drawMesh(primitiveObjects, model, model.meshes[node.mesh], node.mesh);
 	}
 	for (size_t i = 0; i < node.children.size(); i++) {
-		drawModelNodes(primitiveObjects, model, node.children[i]);
+		drawModelNodes(primitiveObjects, model, node.children[i], shaderToUse);
 	}
 }
 
 void ModelEntity::drawModel(const std::vector<PrimitiveObject>& primitiveObjects,
-				tinygltf::Model &model) {
+				tinygltf::Model &model, std::shared_ptr<Shader> shaderToUse) {
 	// Draw all nodes
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];
 	for (size_t i = 0; i < scene.nodes.size(); ++i) {
-		drawModelNodes(primitiveObjects, model, scene.nodes[i]);
+		drawModelNodes(primitiveObjects, model, scene.nodes[i], shaderToUse);
 	}
 }

@@ -88,14 +88,18 @@ struct ModelEntity : public Entity {
 		int meshIndex
 	);
 
+	// shaderToUse override which shader gets the nodeMatrix uniform
+	// need for depth rendering so shadows work properly
 	void drawModelNodes(
 		const std::vector<PrimitiveObject>& primitiveObjects,
 		tinygltf::Model &model, 
-		int nodeIndex
+		int nodeIndex,
+		std::shared_ptr<Shader> shaderToUse = nullptr
 	);
 	void drawModel(
 		const std::vector<PrimitiveObject>& primitiveObjects,
-		tinygltf::Model &model
+		tinygltf::Model &model,
+		std::shared_ptr<Shader> shaderToUse = nullptr
 	);
 
 	void renderDepth(std::shared_ptr<Shader> depthShader);
