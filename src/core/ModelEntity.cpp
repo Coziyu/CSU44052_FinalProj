@@ -17,6 +17,7 @@ static glm::vec3 lightPosition(-275.0f, 500.0f, 800.0f);
 void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath) {
 	this->isSkinned = isSkinned;
 	modelTime = 0.0f;
+	animationSpeed = 1.0f;
 
 	position = glm::vec3(500.0f, 150.0f, 500.0f);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
@@ -350,7 +351,7 @@ void ModelEntity::update(float deltaTime) {
 		}
 
 		// Apply animation channels to local transforms
-		updateAnimation(model, animation, animationObject, modelTime, nodeTransforms, true);
+		updateAnimation(model, animation, animationObject, modelTime * animationSpeed, nodeTransforms, true);
 
 		// Compute global transforms for the whole scene (all scene roots)
 		std::unordered_map<int, glm::mat4> globalNodeTransforms(model.nodes.size());

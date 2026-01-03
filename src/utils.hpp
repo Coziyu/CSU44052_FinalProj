@@ -31,5 +31,6 @@ struct AxisAngle {
 AxisAngle rotationFromTo(glm::vec3 from, glm::vec3 to);
 glm::quat rotationFromToQuat(glm::vec3 from, glm::vec3 to);
 
+glm::quat myQuatLookAt(glm::vec3 direction, glm::vec3 up);
 
 #endif // UTILS_HPP

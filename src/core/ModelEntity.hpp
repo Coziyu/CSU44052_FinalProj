@@ -17,6 +17,7 @@ struct ModelEntity : public Entity {
 	// 
 	std::shared_ptr<Shader> shader;
 	float modelTime;
+	float animationSpeed;
 	bool isSkinned;
 
 	GLuint jointMatricesID;

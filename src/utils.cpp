@@ -328,27 +328,15 @@ AxisAngle rotationFromTo(glm::vec3 from, glm::vec3 to)
     from = glm::normalize(from);
     to   = glm::normalize(to);
 
-    float cosTheta = glm::dot(from, to);
+	glm::quat q = glm::rotation(from, to);
 
-	// ChatGPT suggested fix for numerical errors
-    if (cosTheta > 0.9999f) {
-        result.axis  = glm::vec3(0.0f, 1.0f, 0.0f);
-        result.angle = 0.0f;
-        return result;
-    }
+	result.axis = glm::axis(q);
+	result.angle = glm::angle(q);
+	
+	return result;
+}
 
-    if (cosTheta < -0.9999f) {
-        glm::vec3 ortho = glm::cross(from, glm::vec3(1, 0, 0));
-        if (glm::length(ortho) < 0.0001f)
-            ortho = glm::cross(from, glm::vec3(0, 1, 0));
-
-        result.axis  = glm::normalize(ortho);
-        result.angle = glm::pi<float>();
-        return result;
-    }
-
-    result.axis  = glm::normalize(glm::cross(from, to));
-    result.angle = acos(cosTheta);
-
-    return result;
+glm::quat myQuatLookAt(glm::vec3 direction, glm::vec3 up) {
+    glm::mat4 lookMat = glm::lookAt(glm::vec3(0.0f), direction, up);
+    return glm::conjugate(glm::quat_cast(lookMat));
 }
