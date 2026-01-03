@@ -34,6 +34,12 @@ uniform float u_RoughnessFactor;
 uniform vec3 u_EmissiveFactor;
 uniform float u_OcclusionStrength;
 
+// Convert sRGB to linear space
+vec3 sRGBToLinear(vec3 srgb)
+{
+    return pow(srgb, vec3(2.2));
+}
+
 float calculateShadow(vec3 fragPos)
 {
     vec3 lightToFrag = fragPos - lightPosition;
@@ -64,7 +70,7 @@ void main()
 
 	if (hasBaseColorTex) {
 		vec4 c = texture(baseColorTex, fragUV);
-		albedo *= c.rgb;
+		albedo *= sRGBToLinear(c.rgb);  // Convert sRGB to linear
 		alpha *= c.a;
 	}
 	if (hasMetallicRoughnessTex) {
@@ -75,7 +81,7 @@ void main()
 	}
 	if (hasEmissiveTex) {
 		vec3 em = texture(emissiveTex, fragUV).rgb;
-		emissive *= em;
+		emissive *= sRGBToLinear(em);  // Convert sRGB to linear
 	}
 	if (hasOcclusionTex) {
 		ao = mix(1.0, texture(occlusionTex, fragUV).r, u_OcclusionStrength);

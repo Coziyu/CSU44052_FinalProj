@@ -62,7 +62,8 @@ float calculateShadow(vec3 fragPos)
     
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     
-    return 1.0 - shadow;
+    // return 1.0 - shadow;
+	return 1.0; // DOESN'T WORK??????
 }
 
 void main()
@@ -114,7 +115,6 @@ void main()
 	float shadow = calculateShadow(worldPosition);
 	
 	vec3 v = lightIntensity * lambert * shadow / lightDist;
-	v = v / 10.0;
 	v = v / (1.0 + v); // tone mapping
 
 	vec3 color = albedo * v * occlusion + emissive;
