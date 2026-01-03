@@ -289,3 +289,31 @@ void Terrain::updateOffset(glm::vec3 newOffset) {
     position = glm::vec3(newOffset.x, 0, newOffset.z);
     offset = newOffset;
 }
+
+float Terrain::getHeightAt(float worldX, float worldZ) const {
+    // Convert world coordinates to the same UV space used by the terrain
+    // The terrain uses: u = x / scale.x, v = z / scale.z (after offset adjustment)
+    float u = worldX / scale.x;
+    float v = worldZ / scale.z;
+    
+    float h = pn.octavePerlin(u, v, octaves, persistence, lacunarity);
+    return peakHeight * (h - 0.5f) * 2.0f;
+}
+
+glm::vec3 Terrain::getNormalAt(float worldX, float worldZ) const {
+    // Use central differences to approximate the normal
+    const float epsilon = 1.0f;  // Small step in world units
+    
+    float hL = getHeightAt(worldX - epsilon, worldZ);
+    float hR = getHeightAt(worldX + epsilon, worldZ);
+    float hD = getHeightAt(worldX, worldZ - epsilon);
+    float hU = getHeightAt(worldX, worldZ + epsilon);
+    
+    // Compute tangent vectors
+    glm::vec3 tangentX(2.0f * epsilon, hR - hL, 0.0f);
+    glm::vec3 tangentZ(0.0f, hU - hD, 2.0f * epsilon);
+    
+    // Normal is cross product of tangents
+    glm::vec3 normal = glm::normalize(glm::cross(tangentZ, tangentX));
+    return normal;
+}

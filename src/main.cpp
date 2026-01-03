@@ -5,6 +5,7 @@
 #include "ArchTree.hpp"
 #include "CheeseMoon.hpp"
 #include "MushroomLight.hpp"
+#include "MushroomLightSpawner.hpp"
 #include "Phoenix.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -50,15 +51,17 @@ public:
         archTree.setPosition(glm::vec3(1000, 300, 0));
         phoenix.initialize(true);
         phoenix.setPosition(glm::vec3(500, 1500, 500));
-        mushroomLight.initialize(false);
-        mushroomLight.setPosition(glm::vec3(-800, 300, -200));
+        
+        // Initialize mushroom spawner instead of a single mushroom
+        // Spawns mushrooms in low terrain areas (height < -100)
+        mushroomSpawner.initialize(&terrain, -100.0f, 150.0f, 2000.0f, 2500.0f, 0.3f);
     }
 
     void update(float dt, Camera& camera) {
         terrain.update(dt);
         archTree.update(dt);
         phoenix.update(dt);
-        mushroomLight.update(dt);
+        mushroomSpawner.update(camera.getPosition(), dt);
         cheeseMoon.update(dt, camera.getPosition());
     }
 
@@ -81,7 +84,7 @@ public:
         terrain.render(vp, lightingParams, cameraPos, farPlane);
         archTree.render(vp, lightingParams, cameraPos, farPlane);
         phoenix.render(vp, lightingParams, cameraPos, farPlane);
-        mushroomLight.render(vp, lightingParams, cameraPos, farPlane);
+        mushroomSpawner.render(vp, lightingParams, cameraPos, farPlane);
     }
 
     void renderDepthPass(const LightingParams& lightingParams) {
@@ -89,7 +92,7 @@ public:
         terrain.renderDepth(shadowMap.depthShader, lightingParams);
         archTree.renderDepth(shadowMap.depthShader);
         phoenix.renderDepth(shadowMap.depthShader);
-        mushroomLight.renderDepth(shadowMap.depthShader);
+        mushroomSpawner.renderDepth(shadowMap.depthShader);
     }
 
 private:
@@ -100,7 +103,7 @@ private:
     CheeseMoon cheeseMoon;  // TODO: Actually replace it with a light source model.
     ArchTree archTree;
     Phoenix phoenix;
-    MushroomLight mushroomLight;
+    MushroomLightSpawner mushroomSpawner;
 
 public:
     ShadowMap shadowMap;

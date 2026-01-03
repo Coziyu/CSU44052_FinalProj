@@ -33,6 +33,7 @@ src/core/Shader.cpp
 src/core/Texture.cpp
 src/models/ArchTree.cpp
 src/models/MushroomLight.cpp
+src/models/MushroomLightSpawner.cpp
 src/models/Phoenix.cpp
 src/models/CheeseMoon.cpp
 src/tinygltf_impl.cpp

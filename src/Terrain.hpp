@@ -54,6 +54,19 @@ class Terrain : public DynamicEntity {
 
         bool groundHeightConstraint(glm::vec3 &position);
         void setWireframeMode(bool enabled);
+
+        // Query terrain height/normal at arbitrary world coordinates
+        float getHeightAt(float worldX, float worldZ) const;
+        glm::vec3 getNormalAt(float worldX, float worldZ) const;
+
+        // Expose terrain parameters for external queries
+        const PerlinNoise& getPerlinNoise() const { return pn; }
+        int getOctaves() const { return octaves; }
+        float getPersistence() const { return persistence; }
+        float getLacunarity() const { return lacunarity; }
+        float getPeakHeight() const { return peakHeight; }
+        glm::vec3 getOffset() const { return offset; }
+        float getConsistencyFactor() const { return consistencyFactor; }
 };
 
 #endif // TERRAIN_HPP
