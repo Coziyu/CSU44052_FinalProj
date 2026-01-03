@@ -1,5 +1,5 @@
-#ifndef MUSHROOMLIGHT_HPP
-#define MUSHROOMLIGHT_HPP
+#ifndef MODELENTITY_HPP
+#define MODELENTITY_HPP
 
 #include "Entities.hpp"
 #include "Shader.hpp"
@@ -13,7 +13,7 @@
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-struct MushroomLight : public Entity {
+struct ModelEntity : public Entity {
 	// 
 	std::shared_ptr<Shader> shader;
 	float modelTime;
@@ -66,7 +66,7 @@ struct MushroomLight : public Entity {
 
 	bool loadModel(tinygltf::Model &model, const char *filename);
 
-	void initialize(bool isSkinned);
+	void initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath);
 
 	void bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 				tinygltf::Model &model, tinygltf::Mesh &mesh, int nodeIndex);
@@ -102,4 +102,4 @@ struct MushroomLight : public Entity {
 	}
 }; 
 
-#endif // MUSHROOMLIGHT_HPP
+#endif // MODELENTITY_HPP

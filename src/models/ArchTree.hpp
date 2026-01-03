@@ -1,16 +1,16 @@
-#ifndef PHOENIX_HPP
-#define PHOENIX_HPP
+#ifndef ARCHTREE_HPP
+#define ARCHTREE_HPP
 
 #include "ModelEntity.hpp"
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-struct Phoenix : public ModelEntity {
+struct ArchTree : public ModelEntity {
     static std::string modelDirectory;
     static std::string modelPath;
     static std::string vertexShaderPath;
     static std::string fragmentShaderPath;
-	Phoenix() : ModelEntity() {};
+	ArchTree() : ModelEntity() {};
     void initialize(bool isSkinned);
 }; 
 
-#endif // PHOENIX_HPP
+#endif // ARCHTREE_HPP

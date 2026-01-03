@@ -1,6 +1,7 @@
-#include "MushroomLight.hpp"
-#include "models/MushroomLight.hpp"
+#include "ModelEntity.hpp"
 #include <glm/detail/type_vec.hpp>
+#include <iostream>
+#include <string>
 #include <unordered_map>
 #include "core/Texture.hpp"
 
@@ -10,24 +11,19 @@
 static glm::vec3 lightIntensity(5e6f, 5e6f, 5e6f);
 static glm::vec3 lightPosition(-275.0f, 500.0f, 800.0f);
 
+
 //-- To change when changing models
-void MushroomLight::initialize(bool isSkinned) {
+void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath) {
 	this->isSkinned = isSkinned;
 	modelTime = 0.0f;
 
-	position = glm::vec3(0.0f, 0.0f, 0.0f);
+	position = glm::vec3(500.0f, 150.0f, 500.0f);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
-
-	std::string modelDirectory = "../assets/arch_tree/";
-	std::string modelPath = modelDirectory + std::string("/scene.gltf");
-	std::string vertexShaderPath = "../shaders/mushroom_light.vert";
-	std::string fragmentShaderPath = "../shaders/mushroom_light.frag";
 
 	// Modify your path if needed
 	if (!loadModel(model, modelPath.c_str())) {
 		return;
 	}
-	
 	std::cout << "Loading model: " << modelPath << std::endl;
 	std::cout << "model node count" << model.nodes.size() << std::endl;
 	std::cout << "joint count" << model.skins[0].joints.size() << std::endl;
@@ -66,6 +62,7 @@ void MushroomLight::initialize(bool isSkinned) {
 		if (!img.uri.empty()) {
 			// assume textures live next to the glTF file in ../assets/arch_tree/
 			imagePath = modelDirectory + img.uri;
+			std::cout << "Loading texture: " << imagePath << std::endl;
 		} else {
 			// if embedded or buffer view not supported, skip
 			textures.push_back(nullptr);
@@ -77,7 +74,7 @@ void MushroomLight::initialize(bool isSkinned) {
 	}
 }
 
-void MushroomLight::render(glm::mat4 cameraMatrix) {
+void ModelEntity::render(glm::mat4 cameraMatrix) {
     shader->use();
     
     // Set camera
@@ -118,7 +115,7 @@ void MushroomLight::render(glm::mat4 cameraMatrix) {
 
 
 //-- To check model specific requirements
-std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &model) {
+std::vector<SkinObject> ModelEntity::prepareSkinning(const tinygltf::Model &model) {
 	std::vector<SkinObject> skinObjects;
 
 	// In our Blender exporter, the default number of joints that may influence a vertex is set to 4, just for convenient implementation in shaders.
@@ -174,7 +171,7 @@ std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &mo
 }
 
 
-std::vector<AnimationObject> MushroomLight::prepareAnimation(const tinygltf::Model &model) 
+std::vector<AnimationObject> ModelEntity::prepareAnimation(const tinygltf::Model &model) 
 {
 	std::vector<AnimationObject> animationObjects;
 	for (const auto &anim : model.animations) {
@@ -236,7 +233,7 @@ std::vector<AnimationObject> MushroomLight::prepareAnimation(const tinygltf::Mod
 	return animationObjects;
 }
 
-void MushroomLight::updateAnimation(
+void ModelEntity::updateAnimation(
               		const tinygltf::Model &model, 
               		const tinygltf::Animation &anim, 
               		const AnimationObject &animationObject, 
@@ -315,7 +312,7 @@ void MushroomLight::updateAnimation(
 	}
 }
 
-void MushroomLight::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
+void ModelEntity::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
 
 	// -------------------------------------------------
 	// TODO: Recompute joint matrices 
@@ -333,7 +330,7 @@ void MushroomLight::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTrans
 
 }
 
-void MushroomLight::update(float deltaTime) {
+void ModelEntity::update(float deltaTime) {
 
 	modelTime += deltaTime;
 	
@@ -371,7 +368,7 @@ void MushroomLight::update(float deltaTime) {
 	}
 }
 
-bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
+bool ModelEntity::loadModel(tinygltf::Model &model, const char *filename) {
 	tinygltf::TinyGLTF loader;
 	std::string err;
 	std::string warn;
@@ -393,7 +390,7 @@ bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
 	return res;
 }
 
-void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
+void ModelEntity::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 				tinygltf::Model &model, tinygltf::Mesh &mesh, int nodeIndex) {
 
 	std::map<int, GLuint> vbos;
@@ -449,6 +446,8 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 			if (attrib.first.compare("JOINTS_0") == 0) vaa = 3;
 			if (attrib.first.compare("WEIGHTS_0") == 0) vaa = 4;
 			if (attrib.first.compare("TANGENT") == 0) vaa = 5;
+			if (attrib.first.compare("TEXCOORD_1") == 0) vaa = 6;
+			if (attrib.first.compare("TEXCOORD_2") == 0) vaa = 7;
 			if (vaa > -1) {
 				glEnableVertexAttribArray(vaa);
 				glVertexAttribPointer(vaa, size, accessor.componentType,
@@ -475,7 +474,7 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 
 
 
-void MushroomLight::updateMeshTransforms() {
+void ModelEntity::updateMeshTransforms() {
 	int rootNodeIndex = model.scenes[model.defaultScene].nodes[0];
 	computeLocalNodeTransform(
 		model, 
@@ -493,7 +492,7 @@ void MushroomLight::updateMeshTransforms() {
 }
 
 //-- Fixed methods
-glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
+glm::mat4 ModelEntity::getNodeTransform(const tinygltf::Node& node) {
 	glm::mat4 transform(1.0f); 
 
 	if (node.matrix.size() == 16) {
@@ -512,7 +511,7 @@ glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
 	}
 	return transform;
 }
-void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model, 
+void ModelEntity::computeLocalNodeTransform(const tinygltf::Model& model, 
               		int nodeIndex, 
               		std::unordered_map<int, glm::mat4> &localTransforms
               	)
@@ -524,7 +523,7 @@ void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model,
 	}
 }
 
-void MushroomLight::computeGlobalNodeTransform(const tinygltf::Model& model, 
+void ModelEntity::computeGlobalNodeTransform(const tinygltf::Model& model, 
 		std::unordered_map<int, glm::mat4> &localTransforms,
 		int nodeIndex, const glm::mat4& parentTransform, 
 		std::unordered_map<int, glm::mat4> &globalTransforms)
@@ -538,7 +537,7 @@ void MushroomLight::computeGlobalNodeTransform(const tinygltf::Model& model,
 	}
 }
 
-int MushroomLight::findKeyframeIndex(const std::vector<float>& times, float animationTime) 
+int ModelEntity::findKeyframeIndex(const std::vector<float>& times, float animationTime) 
 {
 	int left = 0;
 	int right = times.size() - 1;
@@ -561,7 +560,7 @@ int MushroomLight::findKeyframeIndex(const std::vector<float>& times, float anim
 	return times.size() - 2;
 }
 
-void MushroomLight::bindModelNodes(std::vector<PrimitiveObject> &primitiveObjects, 
+void ModelEntity::bindModelNodes(std::vector<PrimitiveObject> &primitiveObjects, 
 						tinygltf::Model &model,
 						tinygltf::Node &node) {
 	// Bind buffers for the current mesh at the node
@@ -576,7 +575,7 @@ void MushroomLight::bindModelNodes(std::vector<PrimitiveObject> &primitiveObject
 	}
 }
 
-std::vector<PrimitiveObject> MushroomLight::bindModel(tinygltf::Model &model) {
+std::vector<PrimitiveObject> ModelEntity::bindModel(tinygltf::Model &model) {
 	std::vector<PrimitiveObject> primitiveObjects;
 
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];
@@ -588,7 +587,7 @@ std::vector<PrimitiveObject> MushroomLight::bindModel(tinygltf::Model &model) {
 	return primitiveObjects;
 }
 
-void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
+void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 				tinygltf::Model &model, tinygltf::Mesh &mesh, int meshIndex) {
     
 	for (size_t i = 0; i < mesh.primitives.size(); ++i) 
@@ -619,11 +618,13 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 		glm::vec3 emissiveFactor(0.0f);
 		float occlusionStrength = 1.0f;
 		int baseColorTex = -1, mrTex = -1, normalTexIdx = -1, occlusionTexIdx = -1, emissiveTexIdx = -1;
+		int baseColorUVSet = 0, mrUVSet = 0, normalUVSet = 0, occlusionUVSet = 0, emissiveUVSet = 0;
 
 		if (matIndex >= 0 && matIndex < model.materials.size()) {
 			auto &mat = model.materials[matIndex];
 			if (mat.values.find("baseColorFactor") != mat.values.end()) {
 				// older tinygltf uses values map; prefer pbrMetallicRoughness if present
+				std::cout << "Skipped handling of baseColorFactor" << std::endl;
 			}
 			if (mat.pbrMetallicRoughness.baseColorFactor.size() == 4) {
 				baseColorFactor = glm::vec4(
@@ -643,6 +644,13 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 			if (mat.emissiveTexture.index >= 0) emissiveTexIdx = mat.emissiveTexture.index;
 			if (mat.pbrMetallicRoughness.baseColorTexture.index >= 0) baseColorTex = mat.pbrMetallicRoughness.baseColorTexture.index;
 			if (mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0) mrTex = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+
+			// Retrieve explicit texCoord set indices if provided (default 0)
+			if (mat.pbrMetallicRoughness.baseColorTexture.index >= 0) baseColorUVSet = mat.pbrMetallicRoughness.baseColorTexture.texCoord;
+			if (mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0) mrUVSet = mat.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+			if (mat.normalTexture.index >= 0) normalUVSet = mat.normalTexture.texCoord;
+			if (mat.occlusionTexture.index >= 0) occlusionUVSet = mat.occlusionTexture.texCoord;
+			if (mat.emissiveTexture.index >= 0) emissiveUVSet = mat.emissiveTexture.texCoord;
 		}
 
 		// Set material uniforms
@@ -669,6 +677,13 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 		setTex(occlusionTexIdx, "occlusionTex", "hasOcclusionTex");
 		setTex(emissiveTexIdx, "emissiveTex", "hasEmissiveTex");
 
+		// Set which UV set each sampler should use (0 = TEXCOORD_0, 1 = TEXCOORD_1, 2 = TEXCOORD_2)
+		shader->setUniInt("baseColorUV", baseColorUVSet);
+		shader->setUniInt("mrUV", mrUVSet);
+		shader->setUniInt("normalUV", normalUVSet);
+		shader->setUniInt("occlusionUV", occlusionUVSet);
+		shader->setUniInt("emissiveUV", emissiveUVSet);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.at(indexAccessor.bufferView));
 
 		glDrawElements(primitive.mode, indexAccessor.count,
@@ -686,7 +701,7 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 	}
 }
 
-void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
+void ModelEntity::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
 						tinygltf::Model &model, int nodeIndex) {
 	// Compute node-specific transform from precomputed global transforms
 	auto it = globalMeshTransforms.find(nodeIndex);
@@ -709,7 +724,7 @@ void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitive
 	}
 }
 
-void MushroomLight::drawModel(const std::vector<PrimitiveObject>& primitiveObjects,
+void ModelEntity::drawModel(const std::vector<PrimitiveObject>& primitiveObjects,
 				tinygltf::Model &model) {
 	// Draw all nodes
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];

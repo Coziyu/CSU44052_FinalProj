@@ -28,8 +28,9 @@ add_executable(wonderland
 src/core/Shader.cpp
 src/core/Camera.cpp
 src/core/Texture.cpp
+src/core/ModelEntity.cpp
 src/models/Phoenix.cpp
-src/models/MushroomLight.cpp
+src/models/ArchTree.cpp
 src/tinygltf_impl.cpp
 src/Entities.cpp
 src/Window.cpp

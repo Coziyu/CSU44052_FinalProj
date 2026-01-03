@@ -2,7 +2,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
-#include "MushroomLight.hpp"
+#include "ArchTree.hpp"
 #include "Phoenix.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -20,7 +20,6 @@
 #include "GUIManager.hpp"
 #include "Timer.hpp"
 #include "InputManager.hpp"
-#include "models/MushroomLight.hpp"
 
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
@@ -35,13 +34,13 @@ public:
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
-        mushroomLight.initialize(true);
+        archTree.initialize(true);
         phoenix.initialize(true);
     }
 
     void update(float dt) {
         terrain.update(dt);
-        mushroomLight.update(dt);
+        archTree.update(dt);
         phoenix.update(dt);
     }
 
@@ -55,7 +54,7 @@ public:
         debugAxes.render(vp);
         mybox.render(vp);
         terrain.render(vp);
-        mushroomLight.render(vp);
+        archTree.render(vp);
         phoenix.render(vp);
     }
 
@@ -64,7 +63,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    MushroomLight mushroomLight;
+    ArchTree archTree;
     Phoenix phoenix;
 };
 
