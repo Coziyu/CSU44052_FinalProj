@@ -1,17 +1,17 @@
-#ifndef ARCHTREE_HPP
-#define ARCHTREE_HPP
+#ifndef CHEESEMOON_HPP
+#define CHEESEMOON_HPP
 
 #include "ModelEntity.hpp"
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-struct ArchTree : public ModelEntity {
+struct CheeseMoon : public ModelEntity {
     static std::string modelDirectory;
     static std::string modelPath;
     static std::string vertexShaderPath;
     static std::string fragmentShaderPath;
-	ArchTree() : ModelEntity() {};
+	CheeseMoon() : ModelEntity() {};
     void initialize(bool isSkinned);
-    void update(float dt);
+    void update(float dt, glm::vec3 cameraPos);
 }; 
 
-#endif // ARCHTREE_HPP
+#endif // CHEESEMOON_HPP

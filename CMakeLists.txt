@@ -34,6 +34,7 @@ src/core/Texture.cpp
 src/models/ArchTree.cpp
 src/models/MushroomLight.cpp
 src/models/Phoenix.cpp
+src/models/CheeseMoon.cpp
 src/tinygltf_impl.cpp
 src/Window.cpp
 src/ResourceManager.cpp

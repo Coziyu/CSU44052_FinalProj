@@ -110,7 +110,7 @@ void Camera::handleMovement(DIRECTIONS direction, const float deltaTime) {
     if (direction == UP) {
         if (!flightMode) {
             if (onGround)
-                fallSpeed = - 0.5 * DEFAULT::GRAVITY;
+                fallSpeed = - 1 * DEFAULT::GRAVITY;
         }
         else {
             position += worldUp * 2.0f * speed;

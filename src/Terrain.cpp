@@ -29,7 +29,7 @@ Terrain::Terrain(glm::vec3 _scale, int _resolution) {
     fov = 45.0f;
 
     // Controls how "steep" the slopes are
-    peakHeight = 800.0f;
+    peakHeight = 1100.0f;
     resolution = _resolution;
     octaves = 5;
     persistence = 0.503;

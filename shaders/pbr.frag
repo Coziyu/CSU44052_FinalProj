@@ -28,6 +28,7 @@ uniform bool hasMetallicRoughnessTex;
 uniform bool hasNormalTex;
 uniform bool hasOcclusionTex;
 uniform bool hasEmissiveTex;
+uniform bool alwaysLit;
 
 // Material factors
 uniform vec4 u_BaseColorFactor;
@@ -162,6 +163,20 @@ void main()
     vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 color = ambient + Lo + emissive;
+
+    if (alwaysLit)
+    {
+        float nl = dot(N, L);
+        nl = nl * 0.5 + 0.5; // Half-Lambert
+        nl = clamp(nl, 0.3, 1.0); // Never fully dark
+
+        vec3 color = albedo * nl * ao + emissive;
+
+        // gamma
+        color = pow(color, vec3(1.0 / 2.2));
+        finalColor = vec4(color, alpha);
+        return;
+    }
 
     // Tone mapping + gamma
     color = color / (color + vec3(1.0));

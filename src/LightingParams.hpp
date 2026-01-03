@@ -9,8 +9,8 @@ struct LightingParams {
     glm::vec3 lightIntensity;
 
     LightingParams() 
-        : lightPosition(-275.0f, 500.0f, 800.0f),
-          lightIntensity(5e6f, 5e6f, 5e6f) {}
+        : lightPosition(-1326, 2200, 2571),
+          lightIntensity(5e7f, 5e7f, 5e7f) {}
 };
 
 #endif // LIGHTINGPARAMS_HPP

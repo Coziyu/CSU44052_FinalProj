@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include "ArchTree.hpp"
+#include "CheeseMoon.hpp"
 #include "MushroomLight.hpp"
 #include "Phoenix.hpp"
 #include "imgui.h"
@@ -41,20 +42,24 @@ public:
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
         // Light source indicator - bright yellow box
-        lightIndicator.initialize(lightingParams.lightPosition, glm::vec3(20,20,20));
+        cheeseMoon.initialize(false);
+        cheeseMoon.setPosition(lightingParams.lightPosition);
+        cheeseMoon.setScale(150.0f * glm::vec3(1.0));
+        cheeseMoon.setAlwaysLit(true);
         archTree.initialize(true);
-        archTree.setPosition(glm::vec3(1000, 500, 0));
+        archTree.setPosition(glm::vec3(1000, 300, 0));
         phoenix.initialize(true);
         phoenix.setPosition(glm::vec3(500, 1500, 500));
         mushroomLight.initialize(false);
         mushroomLight.setPosition(glm::vec3(-800, 300, -200));
     }
 
-    void update(float dt) {
+    void update(float dt, Camera& camera) {
         terrain.update(dt);
         archTree.update(dt);
         phoenix.update(dt);
         mushroomLight.update(dt);
+        cheeseMoon.update(dt, camera.getPosition());
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
@@ -62,12 +67,12 @@ public:
     void terrSetNoiseParams(int o, float p, float l) { terrain.setNoiseParams(o,p,l); }
     void terrSetPeakHeight(float h) { terrain.setPeakHeight(h); }
     void terrSetWireframeMode(bool enabled) { terrain.setWireframeMode(enabled); }
-    void updateLightIndicator(const glm::vec3& lightPos) { lightIndicator.position = lightPos; }
+    void updateLightIndicator(const glm::vec3& lightPos) { cheeseMoon.position = lightPos; }
 
     void render(const glm::mat4& vp, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
         debugAxes.render(vp);
         mybox.render(vp);
-        lightIndicator.render(vp);  // Visualize light source position
+        cheeseMoon.render(vp, lightingParams, cameraPos, farPlane);  // Visualize light source position
         
         // Bind shadow cubemap to texture unit 15 (high unit to avoid conflicts with material textures)
         glActiveTexture(GL_TEXTURE15);
@@ -92,7 +97,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    Box lightIndicator;  // TODO: Actually replace it with a light source model.
+    CheeseMoon cheeseMoon;  // TODO: Actually replace it with a light source model.
     ArchTree archTree;
     Phoenix phoenix;
     MushroomLight mushroomLight;
@@ -155,7 +160,7 @@ public:
         int octaves = 5;
         float persistence = 0.503f;
         float lacunarity = 2;
-        float peakHeight = 800.0f;
+        float peakHeight = 1100.0f;
         bool terrainWireframe = false;
 
         while (!mainWindow.shouldClose()) {
@@ -172,7 +177,7 @@ public:
             inputManager.update(dt);
 
             scene.terrUpdateOffset(camera.position);
-            scene.update(dt);
+            scene.update(dt, camera);
 
             camera.setOnGround(scene.terrGroundConstraint(camera.position));
 
@@ -206,7 +211,8 @@ public:
                 if (ImGui::Button("Light Z -")) lightingParams.lightPosition.z -= 100.0f;
                 ImGui::SameLine();  
                 if (ImGui::Button("Light Z +")) lightingParams.lightPosition.z += 100.0f;
-
+                // Click button to set light to camera position
+                if (ImGui::Button("Set Light to Camera Position")) lightingParams.lightPosition = camera.getPosition();
                 
                 ImGui::End();
 

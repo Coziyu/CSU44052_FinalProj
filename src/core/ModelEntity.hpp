@@ -20,6 +20,7 @@ struct ModelEntity : public Entity {
 	float modelTime;
 	float animationSpeed;
 	bool isSkinned;
+	bool alwaysLit;
 
 	GLuint jointMatricesID;
 
@@ -103,6 +104,9 @@ struct ModelEntity : public Entity {
 	);
 
 	void renderDepth(std::shared_ptr<Shader> depthShader);
+
+	void setAlwaysLit(bool lit) { alwaysLit = lit; }
+	bool getAlwaysLit() const { return alwaysLit; }
 
 	void render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane = 10000.0f) override;
 

@@ -11,6 +11,7 @@
 //-- To change when changing models
 void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath) {
 	this->isSkinned = isSkinned;
+	this->alwaysLit = false;
 	modelTime = 0.0f;
 	animationSpeed = 1.0f;
 
@@ -115,6 +116,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
     shader->setUniVec3("cameraPos", cameraPos);
     shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
+    shader->setUniBool("alwaysLit", alwaysLit);
 
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);
@@ -657,7 +659,12 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 			auto &mat = model.materials[matIndex];
 			if (mat.values.find("baseColorFactor") != mat.values.end()) {
 				// older tinygltf uses values map; prefer pbrMetallicRoughness if present
-				std::cout << "Skipped handling of baseColorFactor" << std::endl;
+				static bool hasLogged = false;
+				if (!hasLogged) {
+					std::cout << "Warning: using deprecated material baseColorFactor handling" << std::endl;
+					std::cout << "Skipped handling of baseColorFactor" << std::endl;
+					hasLogged = true;
+				}
 			}
 			if (mat.pbrMetallicRoughness.baseColorFactor.size() == 4) {
 				baseColorFactor = glm::vec4(
