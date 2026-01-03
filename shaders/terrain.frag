@@ -22,11 +22,15 @@ vec3 gamma_correct(vec3 v, float g){
 float calculateShadow(vec3 fragPos)
 {
     vec3 lightToFrag = fragPos - lightPosition;
-    float closestDepth = texture(shadowCubemap, lightToFrag).r;
-    closestDepth *= farPlane;  // back to real dits
-    
     float currentDepth = length(lightToFrag);
-    float bias = 10;
+    
+    // ChatGPT assisted with the bias implementation for shadow ache
+    float closestDepth = texture(shadowCubemap, lightToFrag).r;
+    closestDepth *= farPlane;  // Back to real distance
+    
+    // Adaptive bias: scales with distance to reduce artifacts at far distances
+    float bias = max(0.005 * currentDepth, 0.1);  // Min 0.1, scales with distance
+    
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     
     return 1.0 - shadow;

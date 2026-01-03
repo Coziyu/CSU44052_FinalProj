@@ -174,7 +174,7 @@ void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
     shader->setUniMat4("Model", modelMatrix);
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
     shader->setUniInt("shadowCubemap", 0);
-    shader->setUniFloat("farPlane", 3000.0f); // TODO: Check with actual far plane
+    shader->setUniFloat("farPlane", 10000.0f); // TODO: Check with actual far plane
     
     glBindVertexArray(vertexArrayID);
 
