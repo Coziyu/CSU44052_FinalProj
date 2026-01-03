@@ -22,6 +22,7 @@
 #include "Timer.hpp"
 #include "InputManager.hpp"
 #include "LightingParams.hpp"
+#include "ShadowMap.hpp"
 
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
@@ -32,22 +33,25 @@ public:
     }
 
     void initialize(const LightingParams& lightingParams) {
+        // Initialize shadow mapping
+        shadowMap.initialize();
+
         terrainShader = std::make_shared<Shader>("../shaders/terrain.vert", "../shaders/terrain.frag");
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
         // Light source indicator - bright yellow box
         lightIndicator.initialize(lightingParams.lightPosition, glm::vec3(20,20,20));
-        // archTree.initialize(true);
-        // phoenix.initialize(true);
-        // phoenix.setPosition(glm::vec3(500, 1500, 500));
+        archTree.initialize(true);
+        phoenix.initialize(true);
+        phoenix.setPosition(glm::vec3(500, 1500, 500));
         mushroomLight.initialize(false);
     }
 
     void update(float dt) {
         terrain.update(dt);
-        // archTree.update(dt);
-        // phoenix.update(dt);
+        archTree.update(dt);
+        phoenix.update(dt);
         mushroomLight.update(dt);
     }
 
@@ -62,10 +66,20 @@ public:
         debugAxes.render(vp);
         mybox.render(vp);
         lightIndicator.render(vp);  // Visualize light source position
+        
+        // Bind shadow cubemap before rendering terrain
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, shadowMap.depthCubemap);
         terrain.render(vp, lightingParams);
-        // archTree.render(vp, lightingParams);
-        // phoenix.render(vp, lightingParams);
+        
+        archTree.render(vp, lightingParams);
+        phoenix.render(vp, lightingParams);
         mushroomLight.render(vp, lightingParams);
+    }
+
+    void renderDepthPass(const LightingParams& lightingParams) {
+        // Render only terrain to shadow map
+        terrain.renderDepth(shadowMap.depthShader, lightingParams);
     }
 
 private:
@@ -74,9 +88,12 @@ private:
     AxisXYZ debugAxes;
     Box mybox;
     Box lightIndicator;  // TODO: Actually replace it with a light source model.
-    // ArchTree archTree;
-    // Phoenix phoenix;
+    ArchTree archTree;
+    Phoenix phoenix;
     MushroomLight mushroomLight;
+
+public:
+    ShadowMap shadowMap;
 };
 
 
@@ -85,6 +102,14 @@ private:
 class Renderer {
 public:
     void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams) {
+        // First pass: render depth map from light's perspective
+        scene.shadowMap.beginRender();
+        scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, 3000.0f);
+        scene.renderDepthPass(lightingParams);
+        scene.shadowMap.endRender();
+
+        // Second pass: render scene normally
+        glViewport(0, 0, (int)window.width, (int)window.height);
         glClearColor(0.7f, 0.4f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

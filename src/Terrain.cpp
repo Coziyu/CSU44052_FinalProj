@@ -5,6 +5,7 @@
 #include <glm/detail/type_mat.hpp>
 #include <glm/detail/type_vec.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -144,6 +145,22 @@ void Terrain::setWireframeMode(bool enabled) {
     modeWireframe = enabled;
 }
 
+void Terrain::renderDepth(std::shared_ptr<Shader> depthShader, const LightingParams& lightingParams) {
+    // This is called from within the shadow map FBO
+    // Just render the terrain with the model matrix
+    glm::mat4 modelMatrix = glm::mat4();
+    modelMatrix = glm::translate(modelMatrix, position);
+    modelMatrix = glm::scale(modelMatrix, specialScale);
+
+    // Set the Model matrix uniform using the depth shader
+    depthShader->use();
+    depthShader->setUniMat4("Model", modelMatrix);
+
+    glBindVertexArray(vertexArrayID);
+    glDrawElements(GL_TRIANGLES, index_buffer_data.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
+
 void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
     glm::mat4 modelMatrix = glm::mat4();
     modelMatrix = glm::translate(modelMatrix, position);
@@ -156,6 +173,9 @@ void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
     shader->setUniMat4("MVP", mvp);
     shader->setUniMat4("Model", modelMatrix);
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
+    shader->setUniInt("shadowCubemap", 0);
+    shader->setUniFloat("farPlane", 3000.0f); // TODO: Check with actual far plane
+    
     glBindVertexArray(vertexArrayID);
 
     // Wireframe
