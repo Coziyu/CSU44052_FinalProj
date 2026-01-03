@@ -194,7 +194,19 @@ public:
                 ImGui::Begin("View Parameters");
                 ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 100000.0f);
-                ImGui::SliderFloat3("Light Position x", &lightingParams.lightPosition[0], -10000.0f, 10000.0f);
+                // Use input box instead
+                ImGui::InputFloat3("Light Position", &lightingParams.lightPosition[0]);
+                // Add a + - button to adjust position, 100 units at a time, for lightpos
+                if (ImGui::Button("Light X -")) lightingParams.lightPosition.x -= 100.0f;
+                ImGui::SameLine();
+                if (ImGui::Button("Light X +")) lightingParams.lightPosition.x += 100.0f;
+                if (ImGui::Button("Light Y -")) lightingParams.lightPosition.y -= 100.0f;
+                ImGui::SameLine(); 
+                if (ImGui::Button("Light Y +")) lightingParams.lightPosition.y += 100.0f;
+                if (ImGui::Button("Light Z -")) lightingParams.lightPosition.z -= 100.0f;
+                ImGui::SameLine();  
+                if (ImGui::Button("Light Z +")) lightingParams.lightPosition.z += 100.0f;
+
                 
                 ImGui::End();
 
