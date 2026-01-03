@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include "ArchTree.hpp"
+#include "MushroomLight.hpp"
 #include "Phoenix.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -34,15 +35,17 @@ public:
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
-        archTree.initialize(true);
-        phoenix.initialize(true);
-        phoenix.setPosition(glm::vec3(500, 1500, 500));
+        // archTree.initialize(true);
+        // phoenix.initialize(true);
+        // phoenix.setPosition(glm::vec3(500, 1500, 500));
+        mushroomLight.initialize(false);
     }
 
     void update(float dt) {
         terrain.update(dt);
-        archTree.update(dt);
-        phoenix.update(dt);
+        // archTree.update(dt);
+        // phoenix.update(dt);
+        mushroomLight.update(dt);
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
@@ -55,8 +58,9 @@ public:
         debugAxes.render(vp);
         mybox.render(vp);
         terrain.render(vp);
-        archTree.render(vp);
-        phoenix.render(vp);
+        // archTree.render(vp);
+        // phoenix.render(vp);
+        mushroomLight.render(vp);
     }
 
 private:
@@ -64,8 +68,9 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    ArchTree archTree;
-    Phoenix phoenix;
+    // ArchTree archTree;
+    // Phoenix phoenix;
+    MushroomLight mushroomLight;
 };
 
 

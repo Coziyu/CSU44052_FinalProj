@@ -19,7 +19,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	modelTime = 0.0f;
 	animationSpeed = 1.0f;
 
-	position = glm::vec3(500.0f, 150.0f, 500.0f);
+	position = glm::vec3(0, 0, 0);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 	rotationAngle = 0.0f;
 	rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -30,7 +30,15 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	}
 	std::cout << "Loading model: " << modelPath << std::endl;
 	std::cout << "model node count" << model.nodes.size() << std::endl;
-	std::cout << "joint count" << model.skins[0].joints.size() << std::endl;
+	if (model.skins.size() > 0) {
+		std::cout << "joint count" << model.skins[0].joints.size() << std::endl;
+	}
+	else {
+		std::cout << "Model is not skinned" << std::endl;
+		if (isSkinned) {
+			std::cout << "[WARN]: Model is not skinned, but isSkinned is true" << std::endl;
+		}
+	}
 
 	// Prepare buffers for rendering 
 	primitiveObjects = bindModel(model);

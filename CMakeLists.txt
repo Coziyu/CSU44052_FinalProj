@@ -29,10 +29,11 @@ src/core/Shader.cpp
 src/core/Camera.cpp
 src/core/Texture.cpp
 src/core/ModelEntity.cpp
+src/core/Entities.cpp
 src/models/Phoenix.cpp
 src/models/ArchTree.cpp
+src/models/MushroomLight.cpp
 src/tinygltf_impl.cpp
-src/Entities.cpp
 src/Window.cpp
 src/ResourceManager.cpp
 src/utils.cpp
