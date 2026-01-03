@@ -4,6 +4,7 @@
 #include "Drawable.hpp"
 #include "Shader.hpp"
 #include "Updateable.hpp"
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
 #include <glfw/glfw3.h>
@@ -18,6 +19,10 @@ class Entity : public Drawable {
 
         glm::vec3 position;
         glm::vec3 scale;
+        glm::vec3 rotationAxis;
+        float rotationAngle;
+        glm::vec3 getPosition() const;
+        void setPosition(const glm::vec3 &position_);
     protected:
         int entityID;
         std::shared_ptr<Shader> shader;

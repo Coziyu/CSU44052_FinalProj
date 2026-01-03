@@ -1,5 +1,6 @@
 #include "ModelEntity.hpp"
 #include <glm/detail/type_vec.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -19,6 +20,8 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 
 	position = glm::vec3(500.0f, 150.0f, 500.0f);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+	rotationAngle = 0.0f;
+	rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	// Modify your path if needed
 	if (!loadModel(model, modelPath.c_str())) {
@@ -84,6 +87,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix) {
 	glm::mat4 modelMatrix = glm::mat4();
 	modelMatrix = glm::translate(modelMatrix, position);
 	modelMatrix = glm::scale(modelMatrix, scale);
+	modelMatrix = glm::rotate(modelMatrix, rotationAngle, rotationAxis);
 
 	glm::mat4 mvp = vp * modelMatrix;
 

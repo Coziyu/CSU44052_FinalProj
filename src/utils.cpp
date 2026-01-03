@@ -1,4 +1,9 @@
 #include "utils.hpp"
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/detail/type_vec.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 // Anticlockwise version
 std::vector<unsigned int> generate_grid_indices_acw(const unsigned int size) {
@@ -305,4 +310,45 @@ std::string readFileAsString(const char* filename) {
 		return(contents);
 	}
 	throw(errno);
+}
+
+glm::quat rotationFromToQuat(glm::vec3 from, glm::vec3 to)
+{
+    from = glm::normalize(from);
+    to = glm::normalize(to);
+
+    return glm::normalize(glm::rotation(from, to));
+}
+
+
+AxisAngle rotationFromTo(glm::vec3 from, glm::vec3 to)
+{
+    AxisAngle result;
+
+    from = glm::normalize(from);
+    to   = glm::normalize(to);
+
+    float cosTheta = glm::dot(from, to);
+
+	// ChatGPT suggested fix for numerical errors
+    if (cosTheta > 0.9999f) {
+        result.axis  = glm::vec3(0.0f, 1.0f, 0.0f);
+        result.angle = 0.0f;
+        return result;
+    }
+
+    if (cosTheta < -0.9999f) {
+        glm::vec3 ortho = glm::cross(from, glm::vec3(1, 0, 0));
+        if (glm::length(ortho) < 0.0001f)
+            ortho = glm::cross(from, glm::vec3(0, 1, 0));
+
+        result.axis  = glm::normalize(ortho);
+        result.angle = glm::pi<float>();
+        return result;
+    }
+
+    result.axis  = glm::normalize(glm::cross(from, to));
+    result.angle = acos(cosTheta);
+
+    return result;
 }

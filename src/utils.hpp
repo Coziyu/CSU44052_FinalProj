@@ -12,6 +12,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 std::vector<unsigned int> generate_grid_indices_acw(const unsigned int size);
 std::vector<unsigned int> generate_grid_indices_cw(const unsigned int size);
@@ -20,5 +22,14 @@ GLuint LoadShadersFromFile(const char *vertex_file_path, const char *fragment_fi
 GLuint LoadShadersFromFile(const char *vertex_file_path, const char *fragment_file_path, const char *geometry_file_path);
 
 std::string readFileAsString(const char* filename);
+
+struct AxisAngle {
+    glm::vec3 axis;
+    float angle;
+};
+
+AxisAngle rotationFromTo(glm::vec3 from, glm::vec3 to);
+glm::quat rotationFromToQuat(glm::vec3 from, glm::vec3 to);
+
 
 #endif // UTILS_HPP

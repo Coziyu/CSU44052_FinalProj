@@ -11,6 +11,7 @@ struct Phoenix : public ModelEntity {
     static std::string fragmentShaderPath;
 	Phoenix() : ModelEntity() {};
     void initialize(bool isSkinned);
+    void update(float dt);
 }; 
 
 #endif // PHOENIX_HPP

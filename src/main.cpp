@@ -36,6 +36,7 @@ public:
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
         archTree.initialize(true);
         phoenix.initialize(true);
+        phoenix.setPosition(glm::vec3(500, 1500, 500));
     }
 
     void update(float dt) {
