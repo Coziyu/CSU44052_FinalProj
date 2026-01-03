@@ -7,7 +7,7 @@ in vec4 fragTangent;
 in vec2 fragUV1;
 in vec2 fragUV2;
 
-out vec3 finalColor;
+out vec4 finalColor;
 
 uniform vec3 lightPosition;
 uniform vec3 lightIntensity;
@@ -102,6 +102,11 @@ void main()
         ao = mix(1.0, texture(occlusionTex, getUV(occlusionUV)).r, u_OcclusionStrength);
     }
 
+    // Discard fragments with low alpha
+    if (alpha < 0.1) {
+        discard;
+    }
+
     // Normal mapping
     vec3 N = normalize(worldNormal);
     if (hasNormalTex) {
@@ -154,7 +159,7 @@ void main()
     vec3 Lo = (kD * albedo / 3.14159265 + specular) * radiance * NdotL * shadow;
 
     // Ambient
-    vec3 ambient = vec3(0.09) * albedo * ao;
+    vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 color = ambient + Lo + emissive;
 
@@ -162,5 +167,5 @@ void main()
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
 
-    finalColor = color;
+    finalColor = vec4(color, alpha);
 }
