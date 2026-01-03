@@ -21,6 +21,7 @@
 #include "GUIManager.hpp"
 #include "Timer.hpp"
 #include "InputManager.hpp"
+#include "LightingParams.hpp"
 
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
@@ -30,11 +31,13 @@ public:
     {
     }
 
-    void initialize() {
+    void initialize(const LightingParams& lightingParams) {
         terrainShader = std::make_shared<Shader>("../shaders/terrain.vert", "../shaders/terrain.frag");
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
+        // Light source indicator - bright yellow box
+        lightIndicator.initialize(lightingParams.lightPosition, glm::vec3(20,20,20));
         // archTree.initialize(true);
         // phoenix.initialize(true);
         // phoenix.setPosition(glm::vec3(500, 1500, 500));
@@ -53,14 +56,16 @@ public:
     void terrSetNoiseParams(int o, float p, float l) { terrain.setNoiseParams(o,p,l); }
     void terrSetPeakHeight(float h) { terrain.setPeakHeight(h); }
     void terrSetWireframeMode(bool enabled) { terrain.setWireframeMode(enabled); }
+    void updateLightIndicator(const glm::vec3& lightPos) { lightIndicator.position = lightPos; }
 
-    void render(const glm::mat4& vp) {
+    void render(const glm::mat4& vp, const LightingParams& lightingParams) {
         debugAxes.render(vp);
         mybox.render(vp);
-        terrain.render(vp);
-        // archTree.render(vp);
-        // phoenix.render(vp);
-        mushroomLight.render(vp);
+        lightIndicator.render(vp);  // Visualize light source position
+        terrain.render(vp, lightingParams);
+        // archTree.render(vp, lightingParams);
+        // phoenix.render(vp, lightingParams);
+        mushroomLight.render(vp, lightingParams);
     }
 
 private:
@@ -68,6 +73,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
+    Box lightIndicator;  // Visual indicator for light source position
     // ArchTree archTree;
     // Phoenix phoenix;
     MushroomLight mushroomLight;
@@ -78,7 +84,7 @@ private:
 // we will just put the render code here organisation
 class Renderer {
 public:
-    void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist) {
+    void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams) {
         glClearColor(0.7f, 0.4f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -92,7 +98,7 @@ public:
         // Enable double side rendering to avoid z-fighting
         
 
-        scene.render(projection * view);
+        scene.render(projection * view, lightingParams);
     }
 };
 
@@ -106,7 +112,7 @@ public:
     bool initialize() {
         mainWindow.initialize();
         gui.initialize(mainWindow.window);
-        scene.initialize();
+        scene.initialize(lightingParams);
         camera.setFov(45);
         camera.setZNear(10.0f);
         camera.setZFar(10000.0f);
@@ -141,7 +147,7 @@ public:
             camera.setOnGround(scene.terrGroundConstraint(camera.position));
 
             // Render scene
-            renderer.renderScene(scene, camera, mainWindow, viewDist);
+            renderer.renderScene(scene, camera, mainWindow, viewDist, lightingParams);
 
             // UI
             gui.newFrame();
@@ -158,11 +164,14 @@ public:
                 ImGui::Begin("View Parameters");
                 ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 10000.0f);
+                ImGui::SliderFloat3("Light Position x", &lightingParams.lightPosition[0], -1000.0f, 1000.0f);
+                
                 ImGui::End();
 
                 scene.terrSetNoiseParams(octaves, persistence, lacunarity);
                 scene.terrSetPeakHeight(peakHeight);
                 scene.terrSetWireframeMode(terrainWireframe);
+                scene.updateLightIndicator(lightingParams.lightPosition);
             }
             gui.render();
 
@@ -182,6 +191,7 @@ private:
     InputManager inputManager;
     GUIManager gui;
     Renderer renderer;
+    LightingParams lightingParams;
 };
 
 int main() {

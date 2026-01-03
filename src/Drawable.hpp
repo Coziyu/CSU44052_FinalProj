@@ -5,9 +5,11 @@
  * @brief Interface representing a drawable entity.
  */
 #include <glm/detail/type_mat.hpp>
+#include "LightingParams.hpp"
+
 class Drawable {
     public:
-        virtual void render(glm::mat4 vp) = 0;        
+        virtual void render(glm::mat4 vp, const LightingParams& lightingParams) = 0;        
 };
 
 #endif // DRAWABLE_HPP

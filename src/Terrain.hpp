@@ -4,6 +4,7 @@
 #include "Shader.hpp"
 #include "Entities.hpp"
 #include "utils.hpp"
+#include "LightingParams.hpp"
 #include <glm/detail/type_vec.hpp>
 #include <memory>
 
@@ -42,7 +43,7 @@ class Terrain : public DynamicEntity {
 
     public:
         Terrain(glm::vec3 _scale, int _resolution);
-        void render(glm::mat4 vp) override;
+        void render(glm::mat4 vp, const LightingParams& lightingParams) override;
         void update(float deltaTime) override;
         void updateOffset(glm::vec3 newOffset);
         void initialize(std::shared_ptr<Shader> shaderptr, glm::vec3 position);

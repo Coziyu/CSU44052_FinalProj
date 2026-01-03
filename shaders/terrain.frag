@@ -3,6 +3,7 @@
 in vec4 color;
 in vec3 fragPos;
 in vec3 fragNorm;
+in vec3 worldPosition;
 
 
 uniform vec3 lightPosition;
@@ -22,7 +23,9 @@ void main()
     vec3 ambient = vec3(0.1, 0.1, 0.1);
 
     vec3 norm = normalize(fragNorm);
-    vec3 lightDir = normalize(lightPosition);
+    vec3 lightDir = lightPosition - worldPosition;  // Direction from fragment to light
+    float lightDist = dot(lightDir, lightDir);  // Squared distance
+    lightDir = normalize(lightDir);
 
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);

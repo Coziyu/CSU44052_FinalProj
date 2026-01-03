@@ -8,11 +8,6 @@
 
 #include <tiny_gltf.h>
 
-
-static glm::vec3 lightIntensity(5e6f, 5e6f, 5e6f);
-static glm::vec3 lightPosition(-275.0f, 500.0f, 800.0f);
-
-
 //-- To change when changing models
 void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath) {
 	this->isSkinned = isSkinned;
@@ -86,7 +81,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	}
 }
 
-void ModelEntity::render(glm::mat4 cameraMatrix) {
+void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams) {
     shader->use();
     
     // Set camera
@@ -116,8 +111,8 @@ void ModelEntity::render(glm::mat4 cameraMatrix) {
     // -----------------------------------------------------------------
 
     // Set light data 
-    shader->setUniVec3("lightPosition", lightPosition);
-    shader->setUniVec3("lightIntensity", lightIntensity);
+    shader->setUniVec3("lightPosition", lightingParams.lightPosition);
+    shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
 
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);

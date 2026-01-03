@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "utils.hpp"
 #include "Loadable.hpp"
+#include "LightingParams.hpp"
 
 #include <glm/detail/type_mat.hpp>
 #include <tiny_gltf.h>
@@ -97,7 +98,7 @@ struct ModelEntity : public Entity {
 		tinygltf::Model &model
 	);
 
-	void render(glm::mat4 cameraMatrix);
+	void render(glm::mat4 cameraMatrix, const LightingParams& lightingParams);
 
 	void cleanup() {
 	}

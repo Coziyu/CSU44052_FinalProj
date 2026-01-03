@@ -144,7 +144,7 @@ void Terrain::setWireframeMode(bool enabled) {
     modeWireframe = enabled;
 }
 
-void Terrain::render(glm::mat4 vp) {
+void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
     glm::mat4 modelMatrix = glm::mat4();
     modelMatrix = glm::translate(modelMatrix, position);
     // Special scale factor:
@@ -155,7 +155,7 @@ void Terrain::render(glm::mat4 vp) {
     shader->use();
     shader->setUniMat4("MVP", mvp);
     shader->setUniMat4("Model", modelMatrix);
-    shader->setUniVec3("lightPosition", glm::vec3(1000, 0, 0));
+    shader->setUniVec3("lightPosition", lightingParams.lightPosition);
     glBindVertexArray(vertexArrayID);
 
     // Wireframe
