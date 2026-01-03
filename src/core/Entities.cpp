@@ -16,3 +16,7 @@ Entity::Entity() : position(0.0f), scale(1.0f) {};
 glm::vec3 Entity::getPosition() const { return position; }
 
 void Entity::setPosition(const glm::vec3 &position_) { position = position_; }
+
+void Entity::setScale(const glm::vec3 &scale_) { scale = scale_; }
+
+glm::vec3 Entity::getScale() const { return scale; }

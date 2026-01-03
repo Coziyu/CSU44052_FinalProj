@@ -23,6 +23,8 @@ class Entity : public Drawable {
         float rotationAngle;
         glm::vec3 getPosition() const;
         void setPosition(const glm::vec3 &position_);
+        void setScale(const glm::vec3 &scale_);
+        glm::vec3 getScale() const;
     protected:
         int entityID;
         std::shared_ptr<Shader> shader;
