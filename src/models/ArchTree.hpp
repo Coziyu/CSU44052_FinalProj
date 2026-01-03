@@ -2,15 +2,30 @@
 #define ARCHTREE_HPP
 
 #include "ModelEntity.hpp"
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#include "SharedModelResources.hpp"
 
 struct ArchTree : public ModelEntity {
-    static std::string modelDirectory;
-    static std::string modelPath;
-    static std::string vertexShaderPath;
-    static std::string fragmentShaderPath;
-	ArchTree() : ModelEntity() {};
+    // Shared resources for all ArchTree instances
+    static SharedModelResources sharedResources;
+    static bool resourcesInitialized;
+
+    ArchTree() : ModelEntity() {};
+    
+    /**
+     * @brief Load shared resources once for all ArchTree instances
+     */
+    static void loadSharedResources();
+    
+    /**
+     * @brief Initialize this instance using shared resources
+     */
+    void initializeInstance(bool skinned = true);
+    
+    /**
+     * @brief Legacy initialize (loads per-instance, less efficient)
+     */
     void initialize(bool isSkinned);
+    
     void update(float dt);
 }; 
 

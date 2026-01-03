@@ -103,7 +103,7 @@ bool MushroomLightSpawner::tryActivateCell(int cellX, int cellZ) {
     
     // Create new mushroom instance (lightweight - uses shared resources)
     auto mushroom = std::make_shared<MushroomLight>();
-    mushroom->initializeInstance();
+    mushroom->initializeInstance(false);  // false = not skinned
     configureMushroom(mushroom, position, normal);
     
     // Add to pool

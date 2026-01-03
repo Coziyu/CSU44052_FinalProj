@@ -38,6 +38,12 @@ public:
         // Initialize shadow mapping
         shadowMap.initialize();
 
+        // Load shared resources for all model types ONCE before creating instances
+        CheeseMoon::loadSharedResources();
+        ArchTree::loadSharedResources();
+        Phoenix::loadSharedResources();
+        // Note: MushroomLight::loadSharedResources() is called in mushroomSpawner.initialize()
+
         terrainShader = std::make_shared<Shader>("../shaders/terrain.vert", "../shaders/terrain.frag");
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
         debugAxes.initialize();

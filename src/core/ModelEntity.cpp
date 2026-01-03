@@ -8,10 +8,77 @@
 
 #include <tiny_gltf.h>
 
+ModelEntity::ModelEntity() 
+    : modelTime(0.0f)
+    , animationSpeed(1.0f)
+    , isSkinned(false)
+    , alwaysLit(false)
+    , active(true)
+    , sharedResources(nullptr)
+    , shader(nullptr)
+    , jointMatricesID(0)
+{
+}
+
+// ========== shared resource acessors ==========
+
+tinygltf::Model& ModelEntity::getModel() {
+    return sharedResources ? sharedResources->model : model;
+}
+
+const tinygltf::Model& ModelEntity::getModel() const {
+    return sharedResources ? sharedResources->model : model;
+}
+
+std::vector<PrimitiveObject>& ModelEntity::getPrimitives() {
+    return sharedResources ? sharedResources->primitives : primitiveObjects;
+}
+
+const std::vector<PrimitiveObject>& ModelEntity::getPrimitives() const {
+    return sharedResources ? sharedResources->primitives : primitiveObjects;
+}
+
+std::vector<std::shared_ptr<Texture>>& ModelEntity::getTextures() {
+    return sharedResources ? sharedResources->textures : textures;
+}
+
+std::shared_ptr<Shader> ModelEntity::getShader() {
+    return sharedResources ? sharedResources->shader : shader;
+}
+
+std::unordered_map<int, glm::mat4>& ModelEntity::getGlobalMeshTransforms() {
+    return sharedResources ? sharedResources->globalMeshTransforms : globalMeshTransforms;
+}
+
+// ========== initializaton ==========
+
+void ModelEntity::initializeFromShared(SharedModelResources* resources, bool skinned) {
+    sharedResources = resources;
+    isSkinned = skinned;
+    alwaysLit = false;
+    active = true;
+    modelTime = 0.0f;
+    animationSpeed = 1.0f;
+
+    position = glm::vec3(0, 0, 0);
+    scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    rotationAngle = 0.0f;
+    rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    // for animated models we need per-instance skinning state
+    if (skinned && sharedResources && sharedResources->model.skins.size() > 0) {
+        // copy skinning data so each instnace can animate independantly
+        skinObjects = sharedResources->skinObjects;
+        animationObjects = sharedResources->animationObjects;
+    }
+}
+
 //-- To change when changing models
 void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::string modelPath, std::string vertexShaderPath, std::string fragmentShaderPath) {
+	this->sharedResources = nullptr;  // Using per-instance resources
 	this->isSkinned = isSkinned;
 	this->alwaysLit = false;
+	this->active = true;
 	modelTime = 0.0f;
 	animationSpeed = 1.0f;
 
@@ -83,7 +150,10 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 }
 
 void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
-    shader->use();
+    if (!active) return;
+    
+    auto activeShader = getShader();
+    activeShader->use();
     
     // Set camera
     glm::mat4 vp = cameraMatrix;
@@ -96,35 +166,37 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
 
 	glm::mat4 mvp = vp * modelMatrix;
 
-    shader->setUniMat4("MVP", mvp);
-	shader->setUniBool("isSkinned", isSkinned);
+    activeShader->setUniMat4("MVP", mvp);
+	activeShader->setUniBool("isSkinned", isSkinned);
     // -----------------------------------------------------------------
     // TODO: Set animation data for linear blend skinning in shader
     // -----------------------------------------------------------------
     
     if (!skinObjects.empty()) {
-        shader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
+        activeShader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
     }
 	// if (!isSkinned){
-	// 	shader->setUniMat4Arr("jointMatrices", localMeshTransforms, localMeshTransforms.size());
+	// 	activeShader->setUniMat4Arr("jointMatrices", localMeshTransforms, localMeshTransforms.size());
 	// }
     
     // -----------------------------------------------------------------
 
     // Set light data 
-    shader->setUniVec3("lightPosition", lightingParams.lightPosition);
-    shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
-    shader->setUniVec3("cameraPos", cameraPos);
-    shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
-    shader->setUniBool("alwaysLit", alwaysLit);
+    activeShader->setUniVec3("lightPosition", lightingParams.lightPosition);
+    activeShader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
+    activeShader->setUniVec3("cameraPos", cameraPos);
+    activeShader->setUniInt("shadowCubemap", 15);  // Texture unit 15
+    activeShader->setUniBool("alwaysLit", alwaysLit);
 
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);
-	drawModel(primitiveObjects, model);
+	drawModel(getPrimitives(), getModel());
 	glEnable(GL_CULL_FACE);
 }
 
 void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
+	if (!active) return;
+	
 	depthShader->use();
 	
 	// build the model transform (position, scale, rotation)
@@ -144,7 +216,7 @@ void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
 	// important: pass depthShader to drawModel so it sets nodeMatrix on the right shader
 	// otherwise shadows get messed up because nodeMatrix goes to the wrong place
 	glDisable(GL_CULL_FACE);
-	drawModel(primitiveObjects, model, depthShader);
+	drawModel(getPrimitives(), getModel(), depthShader);
 	glEnable(GL_CULL_FACE);
 }
 
@@ -354,7 +426,7 @@ void ModelEntity::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransfo
 	// -------------------------------------------------
 	SkinObject &skinObject = skinObjects[0];
 	// Assuming we have updated global?? node transforms here (from updateAnimation)
-	tinygltf::Skin &skin = model.skins[0];
+	tinygltf::Skin &skin = getModel().skins[0];
 	for (int j = 0; j < skin.joints.size(); j++) {
 		//! JOINTS STORES NODE INDICES, SO MUST ACCESS THEM THIS WAY.
 		int nodeIndex = skin.joints[j];
@@ -369,26 +441,28 @@ void ModelEntity::update(float deltaTime) {
 
 	modelTime += deltaTime;
 	
-	if (model.animations.size() > 0) {
-		const tinygltf::Animation &animation = model.animations[0];
+	tinygltf::Model& activeModel = getModel();
+	
+	if (activeModel.animations.size() > 0) {
+		const tinygltf::Animation &animation = activeModel.animations[0];
 		const AnimationObject &animationObject = animationObjects[0];
 		
-		const tinygltf::Skin &skin = model.skins[0];
+		const tinygltf::Skin &skin = activeModel.skins[0];
 		// Initialize local node transforms from the model (so non-animated nodes keep their base transform)
-		std::unordered_map<int, glm::mat4> nodeTransforms(model.nodes.size());
-		for (size_t i = 0; i < model.nodes.size(); ++i) {
-			nodeTransforms[i] = getNodeTransform(model.nodes[i]);
+		std::unordered_map<int, glm::mat4> nodeTransforms(activeModel.nodes.size());
+		for (size_t i = 0; i < activeModel.nodes.size(); ++i) {
+			nodeTransforms[i] = getNodeTransform(activeModel.nodes[i]);
 		}
 
 		// Apply animation channels to local transforms
-		updateAnimation(model, animation, animationObject, modelTime * animationSpeed, nodeTransforms, true);
+		updateAnimation(activeModel, animation, animationObject, modelTime * animationSpeed, nodeTransforms, true);
 
 		// Compute global transforms for the whole scene (all scene roots)
-		std::unordered_map<int, glm::mat4> globalNodeTransforms(model.nodes.size());
-		const tinygltf::Scene &scene = model.scenes[model.defaultScene];
+		std::unordered_map<int, glm::mat4> globalNodeTransforms(activeModel.nodes.size());
+		const tinygltf::Scene &scene = activeModel.scenes[activeModel.defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); ++i) {
 			int rootNode = scene.nodes[i];
-			computeGlobalNodeTransform(model, nodeTransforms, rootNode, glm::mat4(1.0f), globalNodeTransforms);
+			computeGlobalNodeTransform(activeModel, nodeTransforms, rootNode, glm::mat4(1.0f), globalNodeTransforms);
 		}
 
 		// Update skin joint matrices from the computed global transforms
@@ -398,8 +472,14 @@ void ModelEntity::update(float deltaTime) {
 		globalMeshTransforms = globalNodeTransforms;
 	}
 	else {
-		// No animations: use static transforms from model nodes
-		updateMeshTransforms();
+		// no animations: use static transforms from shared resources if availble
+		if (sharedResources) {
+			// copy precomputed tranforms from shared resources
+			localMeshTransforms = sharedResources->localMeshTransforms;
+			globalMeshTransforms = sharedResources->globalMeshTransforms;
+		} else {
+			updateMeshTransforms();
+		}
 	}
 }
 
@@ -510,15 +590,20 @@ void ModelEntity::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 
 
 void ModelEntity::updateMeshTransforms() {
-	int rootNodeIndex = model.scenes[model.defaultScene].nodes[0];
+	tinygltf::Model& activeModel = getModel();
+	if (activeModel.scenes.empty()) {
+		std::cerr << "[ModelEntity] updateMeshTransforms: No scenes in model!" << std::endl;
+		return;
+	}
+	int rootNodeIndex = activeModel.scenes[activeModel.defaultScene].nodes[0];
 	computeLocalNodeTransform(
-		model, 
+		activeModel, 
 		rootNodeIndex, 
 		localMeshTransforms
 	);
 
 	computeGlobalNodeTransform(
-		model, 
+		activeModel, 
 		localMeshTransforms, 
 		rootNodeIndex, 
 		glm::mat4(1.0f), 
@@ -694,20 +779,23 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 		}
 
 		// Set material uniforms
-		shader->setUniVec4("u_BaseColorFactor", baseColorFactor);
-		shader->setUniFloat("u_MetallicFactor", metallicFactor);
-		shader->setUniFloat("u_RoughnessFactor", roughnessFactor);
-		shader->setUniVec3("u_EmissiveFactor", emissiveFactor);
-		shader->setUniFloat("u_OcclusionStrength", occlusionStrength);
+		auto activeShader = getShader();
+		auto& activeTextures = getTextures();
+		
+		activeShader->setUniVec4("u_BaseColorFactor", baseColorFactor);
+		activeShader->setUniFloat("u_MetallicFactor", metallicFactor);
+		activeShader->setUniFloat("u_RoughnessFactor", roughnessFactor);
+		activeShader->setUniVec3("u_EmissiveFactor", emissiveFactor);
+		activeShader->setUniFloat("u_OcclusionStrength", occlusionStrength);
 
 		// Bind and set samplers if present
 		auto setTex = [&](int texIdx, const char* uniformName, const char* flagName){
-			if (texIdx >= 0 && texIdx < textures.size() && textures[texIdx]) {
-				textures[texIdx]->bind();
-				shader->setUniInt(uniformName, textures[texIdx]->unit);
-				shader->setUniBool(flagName, true);
+			if (texIdx >= 0 && texIdx < (int)activeTextures.size() && activeTextures[texIdx]) {
+				activeTextures[texIdx]->bind();
+				activeShader->setUniInt(uniformName, activeTextures[texIdx]->unit);
+				activeShader->setUniBool(flagName, true);
 			} else {
-				shader->setUniBool(flagName, false);
+				activeShader->setUniBool(flagName, false);
 			}
 		};
 
@@ -718,11 +806,11 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 		setTex(emissiveTexIdx, "emissiveTex", "hasEmissiveTex");
 
 		// Set which UV set each sampler should use (0 = TEXCOORD_0, 1 = TEXCOORD_1, 2 = TEXCOORD_2)
-		shader->setUniInt("baseColorUV", baseColorUVSet);
-		shader->setUniInt("mrUV", mrUVSet);
-		shader->setUniInt("normalUV", normalUVSet);
-		shader->setUniInt("occlusionUV", occlusionUVSet);
-		shader->setUniInt("emissiveUV", emissiveUVSet);
+		activeShader->setUniInt("baseColorUV", baseColorUVSet);
+		activeShader->setUniInt("mrUV", mrUVSet);
+		activeShader->setUniInt("normalUV", normalUVSet);
+		activeShader->setUniInt("occlusionUV", occlusionUVSet);
+		activeShader->setUniInt("emissiveUV", emissiveUVSet);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.at(indexAccessor.bufferView));
 
@@ -731,11 +819,11 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 					BUFFER_OFFSET(indexAccessor.byteOffset));
 
 		// Unbind textures we bound (optional)
-		if (baseColorTex >= 0 && baseColorTex < textures.size() && textures[baseColorTex]) textures[baseColorTex]->unbind();
-		if (mrTex >= 0 && mrTex < textures.size() && textures[mrTex]) textures[mrTex]->unbind();
-		if (normalTexIdx >= 0 && normalTexIdx < textures.size() && textures[normalTexIdx]) textures[normalTexIdx]->unbind();
-		if (occlusionTexIdx >= 0 && occlusionTexIdx < textures.size() && textures[occlusionTexIdx]) textures[occlusionTexIdx]->unbind();
-		if (emissiveTexIdx >= 0 && emissiveTexIdx < textures.size() && textures[emissiveTexIdx]) textures[emissiveTexIdx]->unbind();
+		if (baseColorTex >= 0 && baseColorTex < (int)activeTextures.size() && activeTextures[baseColorTex]) activeTextures[baseColorTex]->unbind();
+		if (mrTex >= 0 && mrTex < (int)activeTextures.size() && activeTextures[mrTex]) activeTextures[mrTex]->unbind();
+		if (normalTexIdx >= 0 && normalTexIdx < (int)activeTextures.size() && activeTextures[normalTexIdx]) activeTextures[normalTexIdx]->unbind();
+		if (occlusionTexIdx >= 0 && occlusionTexIdx < (int)activeTextures.size() && activeTextures[occlusionTexIdx]) activeTextures[occlusionTexIdx]->unbind();
+		if (emissiveTexIdx >= 0 && emissiveTexIdx < (int)activeTextures.size() && activeTextures[emissiveTexIdx]) activeTextures[emissiveTexIdx]->unbind();
 
 		glBindVertexArray(0);
 	}
@@ -744,11 +832,12 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 void ModelEntity::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
 						tinygltf::Model &model, int nodeIndex, std::shared_ptr<Shader> shaderToUse) {
 	// use the shader we passed in, or default to the member shader for normal rendering
-	std::shared_ptr<Shader> activeShader = shaderToUse ? shaderToUse : shader;
+	std::shared_ptr<Shader> activeShader = shaderToUse ? shaderToUse : getShader();
 	
 	// grab the node's transformation from our precalculated map
-	auto it = globalMeshTransforms.find(nodeIndex);
-	glm::mat4 nodeGlobal = (it != globalMeshTransforms.end()) ? it->second : glm::mat4(1.0f);
+	auto& transforms = getGlobalMeshTransforms();
+	auto it = transforms.find(nodeIndex);
+	glm::mat4 nodeGlobal = (it != transforms.end()) ? it->second : glm::mat4(1.0f);
 
 	// for skinned models, the joint matrices already handle the node transform
 	// so we don't want to apply it again or we get double transformation (bad)

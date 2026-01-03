@@ -1,12 +1,40 @@
 #include "ArchTree.hpp"
 #include "ModelEntity.hpp"
+#include <iostream>
 
-void ArchTree::initialize(bool isSkinned) { ModelEntity::initialize(isSkinned, modelDirectory, modelPath, vertexShaderPath, fragmentShaderPath); };
+// Static member definitions
+SharedModelResources ArchTree::sharedResources(
+    "../assets/arch_tree/",
+    "../assets/arch_tree/scene.gltf",
+    "../shaders/pbr.vert",
+    "../shaders/pbr.frag"
+);
+bool ArchTree::resourcesInitialized = false;
 
-std::string ArchTree::modelDirectory = "../assets/arch_tree/";
-std::string ArchTree::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string ArchTree::vertexShaderPath = "../shaders/pbr.vert";
-std::string ArchTree::fragmentShaderPath = "../shaders/pbr.frag";
+void ArchTree::loadSharedResources() {
+    if (resourcesInitialized) return;
+    
+    std::cout << "[ArchTree] Loading shared resources..." << std::endl;
+    if (sharedResources.load(true)) {  // true = prepare skinning data
+        resourcesInitialized = true;
+        std::cout << "[ArchTree] Shared resources loaded successfully." << std::endl;
+    } else {
+        std::cerr << "[ArchTree] Failed to load shared resources!" << std::endl;
+    }
+}
+
+void ArchTree::initializeInstance(bool skinned) {
+    if (!resourcesInitialized) {
+        loadSharedResources();
+    }
+    ModelEntity::initializeFromShared(&sharedResources, skinned);
+}
+
+void ArchTree::initialize(bool isSkinned) {
+    // Use shared resources path
+    initializeInstance(isSkinned);
+}
+
 void ArchTree::update(float dt) {
     static float initialY = position.y;
     // Bob up and down slowly

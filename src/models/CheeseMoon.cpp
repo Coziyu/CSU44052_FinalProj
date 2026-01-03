@@ -1,6 +1,38 @@
 #include "CheeseMoon.hpp"
+#include <iostream>
 
-void CheeseMoon::initialize(bool isSkinned) { ModelEntity::initialize(isSkinned, modelDirectory, modelPath, vertexShaderPath, fragmentShaderPath); };
+// Static member definitions
+SharedModelResources CheeseMoon::sharedResources(
+    "../assets/cheese_moon/",
+    "../assets/cheese_moon/scene.gltf",
+    "../shaders/pbr.vert",
+    "../shaders/pbr.frag"
+);
+bool CheeseMoon::resourcesInitialized = false;
+
+void CheeseMoon::loadSharedResources() {
+    if (resourcesInitialized) return;
+    
+    std::cout << "[CheeseMoon] Loading shared resources..." << std::endl;
+    if (sharedResources.load(false)) {  // false = no skinning data
+        resourcesInitialized = true;
+        std::cout << "[CheeseMoon] Shared resources loaded successfully." << std::endl;
+    } else {
+        std::cerr << "[CheeseMoon] Failed to load shared resources!" << std::endl;
+    }
+}
+
+void CheeseMoon::initializeInstance(bool skinned) {
+    if (!resourcesInitialized) {
+        loadSharedResources();
+    }
+    ModelEntity::initializeFromShared(&sharedResources, skinned);
+}
+
+void CheeseMoon::initialize(bool isSkinned) { 
+    // Use shared resources path
+    initializeInstance(isSkinned);
+};
 
 void CheeseMoon::update(float dt, glm::vec3 cameraPos) {
     // Rotate the front of the moon to always face the camera
@@ -18,8 +50,3 @@ void CheeseMoon::update(float dt, glm::vec3 cameraPos) {
 
     ModelEntity::update(dt);
 }
-
-std::string CheeseMoon::modelDirectory = "../assets/cheese_moon/";
-std::string CheeseMoon::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string CheeseMoon::vertexShaderPath = "../shaders/pbr.vert";
-std::string CheeseMoon::fragmentShaderPath = "../shaders/pbr.frag";

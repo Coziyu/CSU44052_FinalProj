@@ -6,9 +6,38 @@
 #include <glm/gtc/quaternion.hpp>
 #include <iostream>
 
+// Static member definitions
+SharedModelResources Phoenix::sharedResources(
+    "../assets/phoenix_bird/",
+    "../assets/phoenix_bird/scene.gltf",
+    "../shaders/pbr.vert",
+    "../shaders/pbr.frag"
+);
+bool Phoenix::resourcesInitialized = false;
+
+void Phoenix::loadSharedResources() {
+    if (resourcesInitialized) return;
+    
+    std::cout << "[Phoenix] Loading shared resources..." << std::endl;
+    if (sharedResources.load(true)) {  // true = prepare skinning data
+        resourcesInitialized = true;
+        std::cout << "[Phoenix] Shared resources loaded successfully." << std::endl;
+    } else {
+        std::cerr << "[Phoenix] Failed to load shared resources!" << std::endl;
+    }
+}
+
+void Phoenix::initializeInstance(bool skinned) {
+    if (!resourcesInitialized) {
+        loadSharedResources();
+    }
+    ModelEntity::initializeFromShared(&sharedResources, skinned);
+    animationSpeed = 0.5f;
+}
+
 void Phoenix::initialize(bool isSkinned) { 
-	ModelEntity::initialize(isSkinned, modelDirectory, modelPath, vertexShaderPath, fragmentShaderPath);
-	animationSpeed = 0.5;
+	// Use shared resources path
+	initializeInstance(isSkinned);
 };
 
 void Phoenix::update(float dt) { 
@@ -39,8 +68,3 @@ void Phoenix::update(float dt) {
 
 	ModelEntity::update(dt); 
 };
-
-std::string Phoenix::modelDirectory = "../assets/phoenix_bird/";
-std::string Phoenix::modelPath = modelDirectory + std::string("/scene.gltf");
-std::string Phoenix::vertexShaderPath = "../shaders/pbr.vert";
-std::string Phoenix::fragmentShaderPath = "../shaders/pbr.frag";
