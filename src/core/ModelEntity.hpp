@@ -98,6 +98,8 @@ struct ModelEntity : public Entity {
 		tinygltf::Model &model
 	);
 
+	void renderDepth(std::shared_ptr<Shader> depthShader);
+
 	void render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, float farPlane = 10000.0f) override;
 
 	void cleanup() {

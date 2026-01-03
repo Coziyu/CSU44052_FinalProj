@@ -173,7 +173,7 @@ void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams, float f
     shader->setUniMat4("MVP", mvp);
     shader->setUniMat4("Model", modelMatrix);
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
-    shader->setUniInt("shadowCubemap", 0);
+    shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
     shader->setUniFloat("farPlane", farPlane);
     
     glBindVertexArray(vertexArrayID);

@@ -43,9 +43,11 @@ public:
         // Light source indicator - bright yellow box
         lightIndicator.initialize(lightingParams.lightPosition, glm::vec3(20,20,20));
         archTree.initialize(true);
+        archTree.setPosition(glm::vec3(1000, 500, 0));
         phoenix.initialize(true);
         phoenix.setPosition(glm::vec3(500, 1500, 500));
         mushroomLight.initialize(false);
+        mushroomLight.setPosition(glm::vec3(-800, 300, -200));
     }
 
     void update(float dt) {
@@ -67,19 +69,22 @@ public:
         mybox.render(vp);
         lightIndicator.render(vp);  // Visualize light source position
         
-        // Bind shadow cubemap before rendering terrain
-        glActiveTexture(GL_TEXTURE0);
+        // Bind shadow cubemap to texture unit 15 (high unit to avoid conflicts with material textures)
+        glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_CUBE_MAP, shadowMap.depthCubemap);
-        terrain.render(vp, lightingParams, farPlane);
         
-        archTree.render(vp, lightingParams);
-        phoenix.render(vp, lightingParams);
-        mushroomLight.render(vp, lightingParams);
+        terrain.render(vp, lightingParams, farPlane);
+        archTree.render(vp, lightingParams, farPlane);
+        phoenix.render(vp, lightingParams, farPlane);
+        mushroomLight.render(vp, lightingParams, farPlane);
     }
 
     void renderDepthPass(const LightingParams& lightingParams) {
-        // Render only terrain to shadow map
+        // Render all shadow-casting objects to shadow map
         terrain.renderDepth(shadowMap.depthShader, lightingParams);
+        archTree.renderDepth(shadowMap.depthShader);
+        phoenix.renderDepth(shadowMap.depthShader);
+        mushroomLight.renderDepth(shadowMap.depthShader);
     }
 
 private:

@@ -11,6 +11,8 @@ out vec3 finalColor;
 
 uniform vec3 lightPosition;
 uniform vec3 lightIntensity;
+uniform samplerCube shadowCubemap;
+uniform float farPlane;
 
 // Material textures (samplers)
 uniform sampler2D baseColorTex;
@@ -45,6 +47,22 @@ vec2 getUV(int set) {
 	if (set == 1) return fragUV1;
 	if (set == 2) return fragUV2;
 	return fragUV;
+}
+
+float calculateShadow(vec3 fragPos)
+{
+    vec3 lightToFrag = fragPos - lightPosition;
+    float currentDepth = length(lightToFrag);
+    
+    float closestDepth = texture(shadowCubemap, lightToFrag).r;
+    closestDepth *= farPlane;  // Back to real distance
+    
+    // Adaptive bias: scales with distance to reduce artifacts at far distances
+    float bias = max(0.005 * currentDepth, 0.1);
+    
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    
+    return 1.0 - shadow;
 }
 
 void main()
@@ -91,7 +109,11 @@ void main()
 	float lightDist = dot(lightDir, lightDir);
 	lightDir = normalize(lightDir);
 	float lambert = clamp(dot(lightDir, N), 0.0, 1.0);
-	vec3 v = lightIntensity * lambert / lightDist;
+	
+	// Calculate shadow
+	float shadow = calculateShadow(worldPosition);
+	
+	vec3 v = lightIntensity * lambert * shadow / lightDist;
 	v = v / 10.0;
 	v = v / (1.0 + v); // tone mapping
 

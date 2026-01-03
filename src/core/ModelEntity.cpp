@@ -113,6 +113,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     // Set light data 
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
     shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
+    shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
 
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);
@@ -120,6 +121,28 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
 	glEnable(GL_CULL_FACE);
 }
 
+void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
+	depthShader->use();
+	
+	// Set model matrix
+	glm::mat4 modelMatrix = glm::mat4();
+	modelMatrix = glm::translate(modelMatrix, position);
+	modelMatrix = glm::scale(modelMatrix, scale);
+	modelMatrix = glm::rotate(modelMatrix, rotationAngle, rotationAxis);
+	
+	depthShader->setUniMat4("Model", modelMatrix);
+	
+	// Set animation data for skinning if applicable
+	if (!skinObjects.empty()) {
+		depthShader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
+	}
+	depthShader->setUniBool("isSkinned", isSkinned);
+	
+	// Draw the model for depth
+	glDisable(GL_CULL_FACE);
+	drawModel(primitiveObjects, model);
+	glEnable(GL_CULL_FACE);
+}
 
 
 //-- To check model specific requirements
