@@ -6,8 +6,18 @@ Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum for
 	type = texType;
 
 	int widthImg, heightImg, numColCh;
-	stbi_set_flip_vertically_on_load(true);
+	// glTF stores images with top-left origin; do NOT flip vertically when loading for OpenGL
+	stbi_set_flip_vertically_on_load(false);
 	unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
+	bool allocated = false;
+	if (!bytes) {
+		std::cerr << "Failed to load texture: " << image << ". Creating 1x1 white fallback." << std::endl;
+		widthImg = heightImg = 1;
+		numColCh = 4;
+		bytes = (unsigned char*)malloc(4);
+		bytes[0] = 255; bytes[1] = 255; bytes[2] = 255; bytes[3] = 255;
+		allocated = true;
+	}
 
 	glGenTextures(1, &ID);
 	glActiveTexture(GL_TEXTURE0 + slot);
@@ -20,10 +30,25 @@ Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum for
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+	// Choose proper formats based on channels
+	GLenum dataFormat = GL_RGBA;
+	GLenum internalFormat = GL_RGBA8;
+	if (numColCh == 1) { dataFormat = GL_RED; internalFormat = GL_R8; }
+	else if (numColCh == 3) { dataFormat = GL_RGB; internalFormat = GL_RGB8; }
+	else if (numColCh == 4) { dataFormat = GL_RGBA; internalFormat = GL_RGBA8; }
+
+	// Fix alignment for 3-channel images
+	if (dataFormat == GL_RGB) glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	else glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, widthImg, heightImg, 0, dataFormat, GL_UNSIGNED_BYTE, bytes);
+
+	// Only generate mipmaps if texture upload succeeded
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	stbi_image_free(bytes);
+	if (allocated) free(bytes);
+	else stbi_image_free(bytes);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

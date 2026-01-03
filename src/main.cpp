@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include "MushroomLight.hpp"
+#include "Phoenix.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -35,11 +36,13 @@ public:
         debugAxes.initialize();
         mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
         mushroomLight.initialize(true);
+        phoenix.initialize(true);
     }
 
     void update(float dt) {
         terrain.update(dt);
         mushroomLight.update(dt);
+        phoenix.update(dt);
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
@@ -53,6 +56,7 @@ public:
         mybox.render(vp);
         terrain.render(vp);
         mushroomLight.render(vp);
+        phoenix.render(vp);
     }
 
 private:
@@ -61,6 +65,7 @@ private:
     AxisXYZ debugAxes;
     Box mybox;
     MushroomLight mushroomLight;
+    Phoenix phoenix;
 };
 
 

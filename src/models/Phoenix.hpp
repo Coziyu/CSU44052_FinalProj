@@ -1,5 +1,5 @@
-#ifndef MUSHROOMLIGHT_HPP
-#define MUSHROOMLIGHT_HPP
+#ifndef PHOENIX_HPP
+#define PHOENIX_HPP
 
 #include "Entities.hpp"
 #include "Shader.hpp"
@@ -13,7 +13,7 @@
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-struct MushroomLight : public Entity {
+struct Phoenix : public Entity {
 	// 
 	std::shared_ptr<Shader> shader;
 	float modelTime;
@@ -102,4 +102,4 @@ struct MushroomLight : public Entity {
 	}
 }; 
 
-#endif // MUSHROOMLIGHT_HPP
+#endif // PHOENIX_HPP

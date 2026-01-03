@@ -2,23 +2,119 @@
 
 in vec3 worldPosition;
 in vec3 worldNormal; 
+in vec2 fragUV;
+in vec4 fragTangent;
 
 out vec3 finalColor;
 
 uniform vec3 lightPosition;
 uniform vec3 lightIntensity;
 
+// Material textures (samplers)
+uniform sampler2D baseColorTex;
+uniform sampler2D metallicRoughnessTex; // R=metallic, G=roughness (glTF packing varies)
+uniform sampler2D normalTex;
+uniform sampler2D occlusionTex;
+uniform sampler2D emissiveTex;
+
+// Flags
+uniform bool hasBaseColorTex;
+uniform bool hasMetallicRoughnessTex;
+uniform bool hasNormalTex;
+uniform bool hasOcclusionTex;
+uniform bool hasEmissiveTex;
+
+// Material factors
+uniform vec4 u_BaseColorFactor;
+uniform float u_MetallicFactor;
+uniform float u_RoughnessFactor;
+uniform vec3 u_EmissiveFactor;
+uniform float u_OcclusionStrength;
+
 void main()
 {
-	// Lighting
-	vec3 lightDir = lightPosition - worldPosition;
-	float lightDist = dot(lightDir, lightDir);
-	lightDir = normalize(lightDir);
-	vec3 v = lightIntensity * clamp(dot(lightDir, worldNormal), 0.0, 1.0) / lightDist;
-	v = v / 10;
-	// Tone mapping
-	v = v / (1.0 + v);
+	// Fetch material properties
+	vec3 albedo = u_BaseColorFactor.rgb;
+	float alpha = u_BaseColorFactor.a;
+	float metallic = u_MetallicFactor;
+	float roughness = clamp(u_RoughnessFactor, 0.05, 1.0);
+	vec3 emissive = u_EmissiveFactor;
+	float ao = 1.0;
 
-	// Gamma correction
-	finalColor = pow(v, vec3(1.0 / 2.2));
+	if (hasBaseColorTex) {
+		vec4 c = texture(baseColorTex, fragUV);
+		albedo *= c.rgb;
+		alpha *= c.a;
+	}
+	if (hasMetallicRoughnessTex) {
+		vec4 mr = texture(metallicRoughnessTex, fragUV);
+		// glTF packs: R = metallic, G = roughness (some exporters swap channels)
+		metallic *= mr.r;
+		roughness *= mr.g;
+	}
+	if (hasEmissiveTex) {
+		vec3 em = texture(emissiveTex, fragUV).rgb;
+		emissive *= em;
+	}
+	if (hasOcclusionTex) {
+		ao = mix(1.0, texture(occlusionTex, fragUV).r, u_OcclusionStrength);
+	}
+
+	// Normal mapping
+	vec3 N = normalize(worldNormal);
+	if (hasNormalTex) {
+		vec3 T = normalize(fragTangent.xyz);
+		vec3 B = cross(N, T) * fragTangent.w;
+		mat3 TBN = mat3(T, B, N);
+		vec3 nmap = texture(normalTex, fragUV).rgb;
+		nmap = nmap * 2.0 - 1.0;
+		N = normalize(TBN * nmap);
+	}
+
+	// View and light vectors
+	vec3 V = normalize(-worldPosition); // camera at origin in view space (assuming vp used)
+	vec3 L = normalize(lightPosition - worldPosition);
+	vec3 H = normalize(V + L);
+
+	// Fresnel (Schlick)
+	vec3 F0 = mix(vec3(0.04), albedo, metallic);
+	float NdotV = max(dot(N, V), 0.001);
+	float NdotL = max(dot(N, L), 0.0);
+
+	// Distribution (GGX)
+	float a = roughness*roughness;
+	float a2 = a*a;
+	float NdotH = max(dot(N, H), 0.0);
+	float NdotH2 = NdotH*NdotH;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	float D = a2 / (3.14159265 * denom * denom + 1e-6);
+
+	// Geometry (Schlick-GGX)
+	float k = (roughness + 1.0)*(roughness + 1.0)/8.0;
+	float Gv = NdotV / (NdotV * (1.0 - k) + k);
+	float G_l = NdotL / (NdotL * (1.0 - k) + k);
+	float G = Gv * G_l;
+
+	vec3 F = F0 + (1.0 - F0) * pow(1.0 - max(dot(H, V), 0.0), 5.0);
+
+	vec3 numerator = D * G * F;
+	float denomBRDF = 4.0 * NdotV * NdotL + 1e-6;
+	vec3 specular = numerator / denomBRDF;
+
+	vec3 kD = (1.0 - F) * (1.0 - metallic);
+
+	vec3 radiance = lightIntensity / max(dot(lightPosition - worldPosition, lightPosition - worldPosition), 1.0);
+
+	vec3 Lo = (kD * albedo / 3.14159265 + specular) * radiance * NdotL;
+
+	// Ambient (approx)
+	vec3 ambient = vec3(0.03) * albedo * ao;
+
+	vec3 color = ambient + Lo + emissive;
+
+	// Tone mapping + gamma
+	color = color / (color + vec3(1.0));
+	color = pow(color, vec3(1.0/2.2));
+
+	finalColor = color;
 }

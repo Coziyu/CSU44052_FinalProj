@@ -11,6 +11,8 @@ layout(location = 5) in vec4 tangent;
 // Output data, to be interpolated for each fragment
 out vec3 worldPosition;
 out vec3 worldNormal;
+out vec2 fragUV;
+out vec4 fragTangent;
 
 uniform mat4 MVP;
 uniform mat4 jointMatrices[100];
@@ -34,11 +36,18 @@ void main() {
         mat3 normalMat = mat3(nodeMatrix * skinMat);
         worldPosition = worldPosition4.xyz;
         worldNormal = normalize(normalMat * vertexNormal);
+        // transform tangent
+        vec3 t = normalize(mat3(nodeMatrix * skinMat) * tangent.xyz);
+        fragTangent = vec4(t, tangent.w);
     } else {
         worldPosition4 = nodeMatrix * worldPosition4;
         gl_Position = MVP * worldPosition4;
         mat3 normalMat = mat3(nodeMatrix);
         worldPosition = worldPosition4.xyz;
         worldNormal = normalize(normalMat * vertexNormal);
+        vec3 t = normalize(mat3(nodeMatrix) * tangent.xyz);
+        fragTangent = vec4(t, tangent.w);
     }
+
+    fragUV = vertexUV;
 }

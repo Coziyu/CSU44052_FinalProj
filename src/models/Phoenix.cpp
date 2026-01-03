@@ -1,6 +1,8 @@
-#include "MushroomLight.hpp"
-#include "models/MushroomLight.hpp"
+#include "Phoenix.hpp"
+#include "models/Phoenix.hpp"
 #include <glm/detail/type_vec.hpp>
+#include <iostream>
+#include <string>
 #include <unordered_map>
 #include "core/Texture.hpp"
 
@@ -10,15 +12,16 @@
 static glm::vec3 lightIntensity(5e6f, 5e6f, 5e6f);
 static glm::vec3 lightPosition(-275.0f, 500.0f, 800.0f);
 
+
 //-- To change when changing models
-void MushroomLight::initialize(bool isSkinned) {
+void Phoenix::initialize(bool isSkinned) {
 	this->isSkinned = isSkinned;
 	modelTime = 0.0f;
 
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
-	std::string modelDirectory = "../assets/arch_tree/";
+	std::string modelDirectory = "../assets/phoenix_bird/";
 	std::string modelPath = modelDirectory + std::string("/scene.gltf");
 	std::string vertexShaderPath = "../shaders/mushroom_light.vert";
 	std::string fragmentShaderPath = "../shaders/mushroom_light.frag";
@@ -27,7 +30,6 @@ void MushroomLight::initialize(bool isSkinned) {
 	if (!loadModel(model, modelPath.c_str())) {
 		return;
 	}
-	
 	std::cout << "Loading model: " << modelPath << std::endl;
 	std::cout << "model node count" << model.nodes.size() << std::endl;
 	std::cout << "joint count" << model.skins[0].joints.size() << std::endl;
@@ -77,7 +79,7 @@ void MushroomLight::initialize(bool isSkinned) {
 	}
 }
 
-void MushroomLight::render(glm::mat4 cameraMatrix) {
+void Phoenix::render(glm::mat4 cameraMatrix) {
     shader->use();
     
     // Set camera
@@ -118,7 +120,7 @@ void MushroomLight::render(glm::mat4 cameraMatrix) {
 
 
 //-- To check model specific requirements
-std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &model) {
+std::vector<SkinObject> Phoenix::prepareSkinning(const tinygltf::Model &model) {
 	std::vector<SkinObject> skinObjects;
 
 	// In our Blender exporter, the default number of joints that may influence a vertex is set to 4, just for convenient implementation in shaders.
@@ -174,7 +176,7 @@ std::vector<SkinObject> MushroomLight::prepareSkinning(const tinygltf::Model &mo
 }
 
 
-std::vector<AnimationObject> MushroomLight::prepareAnimation(const tinygltf::Model &model) 
+std::vector<AnimationObject> Phoenix::prepareAnimation(const tinygltf::Model &model) 
 {
 	std::vector<AnimationObject> animationObjects;
 	for (const auto &anim : model.animations) {
@@ -236,7 +238,7 @@ std::vector<AnimationObject> MushroomLight::prepareAnimation(const tinygltf::Mod
 	return animationObjects;
 }
 
-void MushroomLight::updateAnimation(
+void Phoenix::updateAnimation(
               		const tinygltf::Model &model, 
               		const tinygltf::Animation &anim, 
               		const AnimationObject &animationObject, 
@@ -315,7 +317,7 @@ void MushroomLight::updateAnimation(
 	}
 }
 
-void MushroomLight::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
+void Phoenix::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
 
 	// -------------------------------------------------
 	// TODO: Recompute joint matrices 
@@ -333,7 +335,7 @@ void MushroomLight::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTrans
 
 }
 
-void MushroomLight::update(float deltaTime) {
+void Phoenix::update(float deltaTime) {
 
 	modelTime += deltaTime;
 	
@@ -371,7 +373,7 @@ void MushroomLight::update(float deltaTime) {
 	}
 }
 
-bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
+bool Phoenix::loadModel(tinygltf::Model &model, const char *filename) {
 	tinygltf::TinyGLTF loader;
 	std::string err;
 	std::string warn;
@@ -393,7 +395,7 @@ bool MushroomLight::loadModel(tinygltf::Model &model, const char *filename) {
 	return res;
 }
 
-void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
+void Phoenix::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 				tinygltf::Model &model, tinygltf::Mesh &mesh, int nodeIndex) {
 
 	std::map<int, GLuint> vbos;
@@ -475,7 +477,7 @@ void MushroomLight::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 
 
 
-void MushroomLight::updateMeshTransforms() {
+void Phoenix::updateMeshTransforms() {
 	int rootNodeIndex = model.scenes[model.defaultScene].nodes[0];
 	computeLocalNodeTransform(
 		model, 
@@ -493,7 +495,7 @@ void MushroomLight::updateMeshTransforms() {
 }
 
 //-- Fixed methods
-glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
+glm::mat4 Phoenix::getNodeTransform(const tinygltf::Node& node) {
 	glm::mat4 transform(1.0f); 
 
 	if (node.matrix.size() == 16) {
@@ -512,7 +514,7 @@ glm::mat4 MushroomLight::getNodeTransform(const tinygltf::Node& node) {
 	}
 	return transform;
 }
-void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model, 
+void Phoenix::computeLocalNodeTransform(const tinygltf::Model& model, 
               		int nodeIndex, 
               		std::unordered_map<int, glm::mat4> &localTransforms
               	)
@@ -524,7 +526,7 @@ void MushroomLight::computeLocalNodeTransform(const tinygltf::Model& model,
 	}
 }
 
-void MushroomLight::computeGlobalNodeTransform(const tinygltf::Model& model, 
+void Phoenix::computeGlobalNodeTransform(const tinygltf::Model& model, 
 		std::unordered_map<int, glm::mat4> &localTransforms,
 		int nodeIndex, const glm::mat4& parentTransform, 
 		std::unordered_map<int, glm::mat4> &globalTransforms)
@@ -538,7 +540,7 @@ void MushroomLight::computeGlobalNodeTransform(const tinygltf::Model& model,
 	}
 }
 
-int MushroomLight::findKeyframeIndex(const std::vector<float>& times, float animationTime) 
+int Phoenix::findKeyframeIndex(const std::vector<float>& times, float animationTime) 
 {
 	int left = 0;
 	int right = times.size() - 1;
@@ -561,7 +563,7 @@ int MushroomLight::findKeyframeIndex(const std::vector<float>& times, float anim
 	return times.size() - 2;
 }
 
-void MushroomLight::bindModelNodes(std::vector<PrimitiveObject> &primitiveObjects, 
+void Phoenix::bindModelNodes(std::vector<PrimitiveObject> &primitiveObjects, 
 						tinygltf::Model &model,
 						tinygltf::Node &node) {
 	// Bind buffers for the current mesh at the node
@@ -576,7 +578,7 @@ void MushroomLight::bindModelNodes(std::vector<PrimitiveObject> &primitiveObject
 	}
 }
 
-std::vector<PrimitiveObject> MushroomLight::bindModel(tinygltf::Model &model) {
+std::vector<PrimitiveObject> Phoenix::bindModel(tinygltf::Model &model) {
 	std::vector<PrimitiveObject> primitiveObjects;
 
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];
@@ -588,7 +590,7 @@ std::vector<PrimitiveObject> MushroomLight::bindModel(tinygltf::Model &model) {
 	return primitiveObjects;
 }
 
-void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
+void Phoenix::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 				tinygltf::Model &model, tinygltf::Mesh &mesh, int meshIndex) {
     
 	for (size_t i = 0; i < mesh.primitives.size(); ++i) 
@@ -686,7 +688,7 @@ void MushroomLight::drawMesh(const std::vector<PrimitiveObject> &primitiveObject
 	}
 }
 
-void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
+void Phoenix::drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects,
 						tinygltf::Model &model, int nodeIndex) {
 	// Compute node-specific transform from precomputed global transforms
 	auto it = globalMeshTransforms.find(nodeIndex);
@@ -709,7 +711,7 @@ void MushroomLight::drawModelNodes(const std::vector<PrimitiveObject>& primitive
 	}
 }
 
-void MushroomLight::drawModel(const std::vector<PrimitiveObject>& primitiveObjects,
+void Phoenix::drawModel(const std::vector<PrimitiveObject>& primitiveObjects,
 				tinygltf::Model &model) {
 	// Draw all nodes
 	const tinygltf::Scene &scene = model.scenes[model.defaultScene];
