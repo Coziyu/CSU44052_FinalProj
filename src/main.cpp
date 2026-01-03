@@ -62,7 +62,7 @@ public:
     void terrSetWireframeMode(bool enabled) { terrain.setWireframeMode(enabled); }
     void updateLightIndicator(const glm::vec3& lightPos) { lightIndicator.position = lightPos; }
 
-    void render(const glm::mat4& vp, const LightingParams& lightingParams) {
+    void render(const glm::mat4& vp, const LightingParams& lightingParams, float farPlane) {
         debugAxes.render(vp);
         mybox.render(vp);
         lightIndicator.render(vp);  // Visualize light source position
@@ -70,7 +70,7 @@ public:
         // Bind shadow cubemap before rendering terrain
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, shadowMap.depthCubemap);
-        terrain.render(vp, lightingParams);
+        terrain.render(vp, lightingParams, farPlane);
         
         archTree.render(vp, lightingParams);
         phoenix.render(vp, lightingParams);
@@ -104,7 +104,7 @@ public:
     void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams) {
         // First pass: render depth map from light's perspective
         scene.shadowMap.beginRender();
-        scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, 10000.0f);
+        scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, viewDist);
         scene.renderDepthPass(lightingParams);
         scene.shadowMap.endRender();
 
@@ -123,7 +123,7 @@ public:
         // Enable double side rendering to avoid z-fighting
         
 
-        scene.render(projection * view, lightingParams);
+        scene.render(projection * view, lightingParams, viewDist);
     }
 };
 
@@ -188,8 +188,8 @@ public:
 
                 ImGui::Begin("View Parameters");
                 ImGui::SetWindowSize(ImVec2(300, 150));
-                ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 10000.0f);
-                ImGui::SliderFloat3("Light Position x", &lightingParams.lightPosition[0], -1000.0f, 1000.0f);
+                ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 100000.0f);
+                ImGui::SliderFloat3("Light Position x", &lightingParams.lightPosition[0], -10000.0f, 10000.0f);
                 
                 ImGui::End();
 

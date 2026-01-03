@@ -81,7 +81,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	}
 }
 
-void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams) {
+void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingParams, float farPlane) {
     shader->use();
     
     // Set camera

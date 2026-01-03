@@ -161,7 +161,7 @@ void Terrain::renderDepth(std::shared_ptr<Shader> depthShader, const LightingPar
     glBindVertexArray(0);
 }
 
-void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
+void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams, float farPlane) {
     glm::mat4 modelMatrix = glm::mat4();
     modelMatrix = glm::translate(modelMatrix, position);
     // Special scale factor:
@@ -174,7 +174,7 @@ void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams) {
     shader->setUniMat4("Model", modelMatrix);
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
     shader->setUniInt("shadowCubemap", 0);
-    shader->setUniFloat("farPlane", 10000.0f); // TODO: Check with actual far plane
+    shader->setUniFloat("farPlane", farPlane);
     
     glBindVertexArray(vertexArrayID);
 

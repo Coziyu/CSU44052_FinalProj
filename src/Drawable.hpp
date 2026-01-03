@@ -9,7 +9,7 @@
 
 class Drawable {
     public:
-        virtual void render(glm::mat4 vp, const LightingParams& lightingParams) = 0;        
+        virtual void render(glm::mat4 vp, const LightingParams& lightingParams, float farPlane = 10000.0f) = 0;        
 };
 
 #endif // DRAWABLE_HPP
