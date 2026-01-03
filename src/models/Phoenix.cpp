@@ -18,13 +18,13 @@ void Phoenix::initialize(bool isSkinned) {
 	this->isSkinned = isSkinned;
 	modelTime = 0.0f;
 
-	position = glm::vec3(0.0f, 0.0f, 0.0f);
+	position = glm::vec3(500.0f, 150.0f, 500.0f);
 	scale = 1.0f * glm::vec3(1.0f, 1.0f, 1.0f);
 
 	std::string modelDirectory = "../assets/phoenix_bird/";
 	std::string modelPath = modelDirectory + std::string("/scene.gltf");
-	std::string vertexShaderPath = "../shaders/mushroom_light.vert";
-	std::string fragmentShaderPath = "../shaders/mushroom_light.frag";
+	std::string vertexShaderPath = "../shaders/phoenix.vert";
+	std::string fragmentShaderPath = "../shaders/phoenix.frag";
 
 	// Modify your path if needed
 	if (!loadModel(model, modelPath.c_str())) {
@@ -68,6 +68,7 @@ void Phoenix::initialize(bool isSkinned) {
 		if (!img.uri.empty()) {
 			// assume textures live next to the glTF file in ../assets/arch_tree/
 			imagePath = modelDirectory + img.uri;
+			std::cout << "Loading texture: " << imagePath << std::endl;
 		} else {
 			// if embedded or buffer view not supported, skip
 			textures.push_back(nullptr);
@@ -451,6 +452,8 @@ void Phoenix::bindMesh(std::vector<PrimitiveObject> &primitiveObjects,
 			if (attrib.first.compare("JOINTS_0") == 0) vaa = 3;
 			if (attrib.first.compare("WEIGHTS_0") == 0) vaa = 4;
 			if (attrib.first.compare("TANGENT") == 0) vaa = 5;
+			if (attrib.first.compare("TEXCOORD_1") == 0) vaa = 6;
+			if (attrib.first.compare("TEXCOORD_2") == 0) vaa = 7;
 			if (vaa > -1) {
 				glEnableVertexAttribArray(vaa);
 				glVertexAttribPointer(vaa, size, accessor.componentType,
@@ -621,11 +624,13 @@ void Phoenix::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 		glm::vec3 emissiveFactor(0.0f);
 		float occlusionStrength = 1.0f;
 		int baseColorTex = -1, mrTex = -1, normalTexIdx = -1, occlusionTexIdx = -1, emissiveTexIdx = -1;
+		int baseColorUVSet = 0, mrUVSet = 0, normalUVSet = 0, occlusionUVSet = 0, emissiveUVSet = 0;
 
 		if (matIndex >= 0 && matIndex < model.materials.size()) {
 			auto &mat = model.materials[matIndex];
 			if (mat.values.find("baseColorFactor") != mat.values.end()) {
 				// older tinygltf uses values map; prefer pbrMetallicRoughness if present
+				std::cout << "Skipped handling of baseColorFactor" << std::endl;
 			}
 			if (mat.pbrMetallicRoughness.baseColorFactor.size() == 4) {
 				baseColorFactor = glm::vec4(
@@ -645,6 +650,13 @@ void Phoenix::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 			if (mat.emissiveTexture.index >= 0) emissiveTexIdx = mat.emissiveTexture.index;
 			if (mat.pbrMetallicRoughness.baseColorTexture.index >= 0) baseColorTex = mat.pbrMetallicRoughness.baseColorTexture.index;
 			if (mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0) mrTex = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+
+			// Retrieve explicit texCoord set indices if provided (default 0)
+			if (mat.pbrMetallicRoughness.baseColorTexture.index >= 0) baseColorUVSet = mat.pbrMetallicRoughness.baseColorTexture.texCoord;
+			if (mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0) mrUVSet = mat.pbrMetallicRoughness.metallicRoughnessTexture.texCoord;
+			if (mat.normalTexture.index >= 0) normalUVSet = mat.normalTexture.texCoord;
+			if (mat.occlusionTexture.index >= 0) occlusionUVSet = mat.occlusionTexture.texCoord;
+			if (mat.emissiveTexture.index >= 0) emissiveUVSet = mat.emissiveTexture.texCoord;
 		}
 
 		// Set material uniforms
@@ -670,6 +682,13 @@ void Phoenix::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 		setTex(normalTexIdx, "normalTex", "hasNormalTex");
 		setTex(occlusionTexIdx, "occlusionTex", "hasOcclusionTex");
 		setTex(emissiveTexIdx, "emissiveTex", "hasEmissiveTex");
+
+		// Set which UV set each sampler should use (0 = TEXCOORD_0, 1 = TEXCOORD_1, 2 = TEXCOORD_2)
+		shader->setUniInt("baseColorUV", baseColorUVSet);
+		shader->setUniInt("mrUV", mrUVSet);
+		shader->setUniInt("normalUV", normalUVSet);
+		shader->setUniInt("occlusionUV", occlusionUVSet);
+		shader->setUniInt("emissiveUV", emissiveUVSet);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.at(indexAccessor.bufferView));
 
