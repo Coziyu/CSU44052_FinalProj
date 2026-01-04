@@ -175,6 +175,8 @@ void Terrain::render(glm::mat4 vp, const LightingParams& lightingParams, glm::ve
     shader->setUniMat4("MVP", mvp);
     shader->setUniMat4("Model", modelMatrix);
     shader->setUniVec3("lightPosition", lightingParams.lightPosition);
+    shader->setUniVec3("lightColor", lightingParams.lightColor);
+    shader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
     shader->setUniInt("shadowCubemap", 15);  // Texture unit 15
     shader->setUniFloat("farPlane", farPlane);
     

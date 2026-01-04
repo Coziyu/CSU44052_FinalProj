@@ -11,6 +11,7 @@ out vec4 finalColor;
 
 uniform vec3 lightPosition;
 uniform vec3 lightIntensity;
+uniform vec3 lightColor;
 uniform vec3 cameraPos;
 uniform samplerCube shadowCubemap;
 uniform float farPlane;
@@ -156,7 +157,7 @@ void main()
     vec3 kD = (1.0 - F) * (1.0 - metallic);
 
     float distToLight = length(lightPosition - worldPosition);
-    vec3 radiance = lightIntensity / (distToLight * distToLight + 0.1);
+    vec3 radiance = lightIntensity * lightColor / (distToLight * distToLight + 0.1);
 
     // Calculate shadow
     float shadow = calculateShadow(worldPosition);

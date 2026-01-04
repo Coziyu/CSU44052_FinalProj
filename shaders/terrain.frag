@@ -6,6 +6,8 @@ in vec3 fragNorm;
 in vec3 worldPosition;
 
 uniform vec3 lightPosition;
+uniform vec3 lightColor;
+uniform vec3 lightIntensity;
 uniform samplerCube shadowCubemap;
 uniform float farPlane;
 
@@ -38,7 +40,7 @@ float calculateShadow(vec3 fragPos)
 
 void main()
 {
-    vec3 ambient = vec3(0.1, 0.1, 0.1);
+    vec3 ambient = 0.5 * vec3(0.1, 0.1, 0.1);
 
     vec3 norm = normalize(fragNorm);
     vec3 lightDir = lightPosition - worldPosition;  // direction from fragment to light
@@ -46,7 +48,7 @@ void main()
     lightDir = normalize(lightDir);
 
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
+    vec3 diffuse = lightIntensity * lightColor * diff / lightDist;
 
     // Calculate shadow
     float shadow = calculateShadow(worldPosition);

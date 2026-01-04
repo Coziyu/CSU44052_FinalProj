@@ -187,6 +187,7 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     // Set light data 
     activeShader->setUniVec3("lightPosition", lightingParams.lightPosition);
     activeShader->setUniVec3("lightIntensity", lightingParams.lightIntensity);
+    activeShader->setUniVec3("lightColor", lightingParams.lightColor);
     activeShader->setUniVec3("cameraPos", cameraPos);
     activeShader->setUniInt("shadowCubemap", 15);  // Texture unit 15
     activeShader->setUniFloat("farPlane", farPlane);
