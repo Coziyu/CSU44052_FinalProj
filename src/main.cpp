@@ -18,6 +18,7 @@
 #include "Perlin.hpp"
 #include "Terrain.hpp"
 #include "Shader.hpp"
+#include "SkyBox.hpp"
 #include <omp.h>
 
 #include "GUIManager.hpp"
@@ -25,7 +26,6 @@
 #include "InputManager.hpp"
 #include "LightingParams.hpp"
 #include "ShadowMap.hpp"
-
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
 public:
@@ -61,6 +61,8 @@ public:
         // Initialize mushroom spawner instead of a single mushroom
         // Spawns mushrooms in low terrain areas (height < -150)
         mushroomSpawner.initialize(&terrain, -150.0f, 150.0f, 2500.0f, 3000.0f, 0.3f);
+
+        skybox.initialize(glm::vec3(0,0,0), 40000.0f * glm::vec3(1,1,1));
     }
 
     void update(float dt, Camera& camera) {
@@ -69,6 +71,7 @@ public:
         phoenix.update(dt);
         mushroomSpawner.update(camera.getPosition(), dt);
         cheeseMoon.update(dt, camera.getPosition());
+        skybox.update(camera.getPosition());
     }
 
     void terrUpdateOffset(const glm::vec3& pos) { terrain.updateOffset(pos); }
@@ -91,6 +94,8 @@ public:
         archTree.render(vp, lightingParams, cameraPos, farPlane);
         phoenix.render(vp, lightingParams, cameraPos, farPlane);
         mushroomSpawner.render(vp, lightingParams, cameraPos, farPlane);
+
+        skybox.render(vp);
     }
 
     void renderDepthPass(const LightingParams& lightingParams) {
@@ -110,6 +115,7 @@ private:
     ArchTree archTree;
     Phoenix phoenix;
     MushroomLightSpawner mushroomSpawner;
+    SkyBox skybox;
 
 public:
     ShadowMap shadowMap;
@@ -186,9 +192,10 @@ public:
             inputManager.update(dt);
 
             scene.terrUpdateOffset(camera.position);
+            camera.setOnGround(scene.terrGroundConstraint(camera.position));
+            // only update scene after constrains enforced. Otherwise skybox jitter
             scene.update(dt, camera);
 
-            camera.setOnGround(scene.terrGroundConstraint(camera.position));
 
             // Render scene
             renderer.renderScene(scene, camera, mainWindow, viewDist, lightingParams);

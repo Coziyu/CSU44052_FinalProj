@@ -31,6 +31,7 @@ src/core/ModelEntity.cpp
 src/core/Perlin.cpp
 src/core/Shader.cpp
 src/core/SharedModelResources.cpp
+src/core/Skybox.cpp
 src/core/Texture.cpp
 src/models/ArchTree.cpp
 src/models/MushroomLight.cpp
