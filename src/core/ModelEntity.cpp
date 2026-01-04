@@ -56,6 +56,7 @@ void ModelEntity::initializeFromShared(SharedModelResources* resources, bool ski
     sharedResources = resources;
     isSkinned = skinned;
     alwaysLit = false;
+    useFade = false;
     active = true;
     modelTime = 0.0f;
     animationSpeed = 1.0f;
@@ -78,6 +79,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 	this->sharedResources = nullptr;  // Using per-instance resources
 	this->isSkinned = isSkinned;
 	this->alwaysLit = false;
+	this->useFade = false;
 	this->active = true;
 	modelTime = 0.0f;
 	animationSpeed = 1.0f;
@@ -188,11 +190,17 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     activeShader->setUniVec3("cameraPos", cameraPos);
     activeShader->setUniInt("shadowCubemap", 15);  // Texture unit 15
     activeShader->setUniFloat("farPlane", farPlane);
+    activeShader->setUniFloat("viewDistance", lightingParams.fadeViewDistance);
+    activeShader->setUniFloat("fadeDistance", lightingParams.fadeDistance);
+    activeShader->setUniBool("useFade", useFade);
     activeShader->setUniBool("alwaysLit", alwaysLit);
 
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	drawModel(getPrimitives(), getModel());
+	glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
 }
 

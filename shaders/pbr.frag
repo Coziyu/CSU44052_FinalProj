@@ -14,6 +14,8 @@ uniform vec3 lightIntensity;
 uniform vec3 cameraPos;
 uniform samplerCube shadowCubemap;
 uniform float farPlane;
+uniform float viewDistance;
+uniform float fadeDistance;
 
 // Material textures (samplers)
 uniform sampler2D baseColorTex;
@@ -29,6 +31,7 @@ uniform bool hasNormalTex;
 uniform bool hasOcclusionTex;
 uniform bool hasEmissiveTex;
 uniform bool alwaysLit;
+uniform bool useFade;  // Whether to apply distance-based fade
 
 // Material factors
 uniform vec4 u_BaseColorFactor;
@@ -182,6 +185,14 @@ void main()
     // Tone mapping + gamma
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.2));
+
+    // fade for smooth pop-in 
+    if (useFade) {
+        float distToCamera = length(cameraPos - worldPosition);
+        float fadeStart = viewDistance - fadeDistance;
+        float fadeAlpha = 1.0 - smoothstep(fadeStart, viewDistance, distToCamera);
+        alpha *= fadeAlpha;
+    }
 
     finalColor = vec4(color, alpha);
 }

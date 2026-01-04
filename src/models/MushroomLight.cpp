@@ -29,6 +29,7 @@ void MushroomLight::initializeInstance(bool skinned) {
     ModelEntity::initializeFromShared(&sharedResources, skinned);
     // Set default mushroom scale
     scale = 30.0f * glm::vec3(1.0f, 1.0f, 1.0f);
+    useFade = true; 
 }
 
 void MushroomLight::initialize(bool isSkinned) { 

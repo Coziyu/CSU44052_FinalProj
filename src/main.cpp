@@ -123,7 +123,7 @@ public:
     void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams) {
         // First pass: render depth map from light's perspective
         scene.shadowMap.beginRender();
-        scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, viewDist);
+        scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, viewDist, camera.getPosition(), lightingParams.fadeViewDistance, lightingParams.fadeDistance);
         scene.renderDepthPass(lightingParams);
         scene.shadowMap.endRender();
 

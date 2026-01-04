@@ -30,6 +30,7 @@ struct ModelEntity : public Entity {
 	float animationSpeed;
 	bool isSkinned;
 	bool alwaysLit;
+	bool useFade;  // distance based fade in/out
 	bool active;
 
 	// Reference to shared resources (if using shared mode)

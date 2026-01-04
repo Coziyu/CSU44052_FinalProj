@@ -195,7 +195,7 @@ void Terrain::update(float deltaTime){
 
     float heightFromGround = offset.y;
     const float originalHeight = 300.0f; //! TODO: UPDATE THIS IF WE CHANGE CAMERA
-    specialScale =  glm::max(2.0f, heightFromGround / originalHeight) *  glm::vec3(1, 0, 1) + glm::vec3(0, 1, 0);
+    specialScale =  glm::max(3.0f, heightFromGround / originalHeight) *  glm::vec3(1, 0, 1) + glm::vec3(0, 1, 0);
 
     // Update perlin noise height
     float offsetU = offset.x * consistencyFactor;

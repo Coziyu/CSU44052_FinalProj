@@ -68,7 +68,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void setLightSpaceMatrices(const glm::vec3& lightPos, float nearPlane, float farPlane) {
+    void setLightSpaceMatrices(const glm::vec3& lightPos, float nearPlane, float farPlane, const glm::vec3& cameraPos = glm::vec3(0), float viewDistance = 2500.0f, float fadeDistance = 500.0f) {
         glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 
                                                  (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT,
                                                  nearPlane, farPlane);
@@ -86,6 +86,9 @@ public:
         }
         depthShader->setUniVec3("lightPos", lightPos);
         depthShader->setUniFloat("farPlane", farPlane);
+        depthShader->setUniVec3("cameraPos", cameraPos);
+        depthShader->setUniFloat("viewDistance", viewDistance);
+        depthShader->setUniFloat("fadeDistance", fadeDistance);
     }
 
     void cleanup() {
