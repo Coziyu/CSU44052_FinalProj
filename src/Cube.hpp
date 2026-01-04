@@ -298,8 +298,6 @@ struct Box {
 		glUseProgram(programID);
 
 		
-		// TODO: Model transform 
-		// ------------------------------------
         glm::mat4 modelMatrix = glm::mat4();
 		
 		modelMatrix = glm::translate(modelMatrix, position);
@@ -308,9 +306,7 @@ struct Box {
 		float time_elapsed = glfwGetTime();
 		modelMatrix = glm::rotate(modelMatrix, time_elapsed * 3.14f/6, glm::vec3(cos(time_elapsed),-1,1));
 		
-		// TODO: Set model-view-projection matrix
 		glm::mat4 mvp = cameraMatrix * modelMatrix;
-		// ------------------------------------
 		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
 		
 		glBindVertexArray(vertexArrayID);

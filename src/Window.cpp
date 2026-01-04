@@ -43,7 +43,7 @@ void Window::initialize() {
     glfwSetCursorPosCallback(window, glfwMouseCallback);
     // Dynamic viewport adjustment
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int w, int h) {
-        glViewport(0, 0, w, h); // TODO: Consider whether to update stored width and height
+        glViewport(0, 0, w, h);
     });
 
     totalTime = 0.0f;

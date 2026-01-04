@@ -5,12 +5,7 @@
 
 /**
  * @brief Class representing a shader program.
- *
  */
-// TODO: Declare, and ensure that implementation supposed optional shaders like geometry, and tesselation.
-// We will require vertex and fragment
-// provide Shader::activate()
-// provide Shader::setUniform(...)
 
 class Shader {
     private:
