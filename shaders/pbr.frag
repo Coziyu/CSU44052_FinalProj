@@ -48,6 +48,16 @@ uniform int normalUV;
 uniform int occlusionUV;
 uniform int emissiveUV;
 
+// PBR toggle options
+uniform bool enableNormalMapping;
+uniform bool enableGGXDistribution;
+uniform bool enableGeometryTerm;
+uniform bool enableFresnel;
+uniform bool enableAmbientOcclusion;
+uniform bool enableShadows;
+uniform bool enableEmissive;
+uniform bool enableToneMapping;
+
 // Convert sRGB to linear space
 vec3 sRGBToLinear(vec3 srgb)
 {
@@ -115,7 +125,7 @@ void main()
 
     // Normal mapping
     vec3 N = normalize(worldNormal);
-    if (hasNormalTex) {
+    if (hasNormalTex && enableNormalMapping) {
         vec3 T = normalize(fragTangent.xyz);
         vec3 B = cross(worldNormal, T) * fragTangent.w;
         mat3 TBN = mat3(T, B, normalize(worldNormal));
@@ -140,15 +150,15 @@ void main()
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH * NdotH;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    float D = a2 / (3.14159265 * denom * denom + 1e-6);
+    float D = enableGGXDistribution ? (a2 / (3.14159265 * denom * denom + 1e-6)) : 1.0;
 
     // Geometry (Schlick-GGX)
     float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
     float Gv = NdotV / (NdotV * (1.0 - k) + k);
     float G_l = NdotL / (NdotL * (1.0 - k) + k);
-    float G = Gv * G_l;
+    float G = enableGeometryTerm ? (Gv * G_l) : 1.0;
 
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - max(dot(H, V), 0.0), 5.0);
+    vec3 F = enableFresnel ? (F0 + (1.0 - F0) * pow(1.0 - max(dot(H, V), 0.0), 5.0)) : F0;
 
     vec3 numerator = D * G * F;
     float denomBRDF = 4.0 * NdotV * NdotL + 1e-6;
@@ -160,14 +170,18 @@ void main()
     vec3 radiance = lightIntensity * lightColor / (distToLight * distToLight + 0.1);
 
     // Calculate shadow
-    float shadow = calculateShadow(worldPosition);
+    float shadow = enableShadows ? calculateShadow(worldPosition) : 1.0;
     
     vec3 Lo = (kD * albedo / 3.14159265 + specular) * radiance * NdotL * shadow;
 
     // Ambient
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    float aoFactor = enableAmbientOcclusion ? ao : 1.0;
+    vec3 ambient = vec3(0.03) * albedo * aoFactor;
 
-    vec3 color = ambient + Lo + emissive;
+    // Emissive
+    vec3 emissiveContrib = enableEmissive ? emissive : vec3(0.0);
+
+    vec3 color = ambient + Lo + emissiveContrib;
 
     if (alwaysLit)
     {
@@ -184,7 +198,9 @@ void main()
     }
 
     // Tone mapping + gamma
-    color = color / (color + vec3(1.0));
+    if (enableToneMapping) {
+        color = color / (color + vec3(1.0));
+    }
     color = pow(color, vec3(1.0 / 2.2));
 
     // fade for smooth pop-in 

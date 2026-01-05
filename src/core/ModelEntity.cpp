@@ -193,6 +193,16 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     activeShader->setUniBool("useFade", useFade);
     activeShader->setUniBool("alwaysLit", alwaysLit);
 
+    // PBR toggle options
+    activeShader->setUniBool("enableNormalMapping", lightingParams.enableNormalMapping);
+    activeShader->setUniBool("enableGGXDistribution", lightingParams.enableGGXDistribution);
+    activeShader->setUniBool("enableGeometryTerm", lightingParams.enableGeometryTerm);
+    activeShader->setUniBool("enableFresnel", lightingParams.enableFresnel);
+    activeShader->setUniBool("enableAmbientOcclusion", lightingParams.enableAmbientOcclusion);
+    activeShader->setUniBool("enableShadows", lightingParams.enableShadows);
+    activeShader->setUniBool("enableEmissive", lightingParams.enableEmissive);
+    activeShader->setUniBool("enableToneMapping", lightingParams.enableToneMapping);
+
 	// Draw the GLTF model
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);

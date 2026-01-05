@@ -215,7 +215,10 @@ public:
             scene.terrUpdateOffset(camera.position);
             camera.setOnGround(scene.terrGroundConstraint(camera.position));
             // only update scene after constrains enforced. Otherwise skybox jitter
-            scene.update(dt, camera);
+            if (mainWindow.cursorLocked()) {
+                // for demo, pause physics
+                scene.update(dt, camera);
+            }
 
             totalTime += dt;
 
@@ -278,6 +281,18 @@ public:
                 ImGui::SliderFloat("Fade Start Dist", &lightingParams.fadeViewDistance, 500.0f, 10000.0f);
                 ImGui::SliderFloat("Fade Range", &lightingParams.fadeDistance, 100.0f, 2000.0f);
                 
+                ImGui::End();
+
+                ImGui::SetNextWindowSize(ImVec2(300, 250), ImGuiCond_FirstUseEver);
+                ImGui::Begin("PBR Options");
+                ImGui::Checkbox("Normal Mapping", &lightingParams.enableNormalMapping);
+                ImGui::Checkbox("GGX Distribution (D)", &lightingParams.enableGGXDistribution);
+                ImGui::Checkbox("Geometry Term (G)", &lightingParams.enableGeometryTerm);
+                ImGui::Checkbox("Fresnel (F)", &lightingParams.enableFresnel);
+                ImGui::Checkbox("Ambient Occlusion", &lightingParams.enableAmbientOcclusion);
+                ImGui::Checkbox("Shadows", &lightingParams.enableShadows);
+                ImGui::Checkbox("Emissive", &lightingParams.enableEmissive);
+                ImGui::Checkbox("Tone Mapping", &lightingParams.enableToneMapping);
                 ImGui::End();
 
                 ImGui::SetNextWindowSize(ImVec2(300, 280), ImGuiCond_FirstUseEver);
