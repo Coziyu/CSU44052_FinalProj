@@ -121,7 +121,7 @@ void main()
     
     // distance fade since flare gets weaker when light is near screen edge
     vec2 screenCenter = vec2(0.5);
-    float distFromCenter = length(lightScreenPos - screenCenter);
+    float distFromCenter = length(lightScreenPos - screenCenter); // TODO: figure out partial occlusion if time allows
     float edgeFade = 1.0 - smoothstep(0.3, 0.7, distFromCenter);
     
     flare *= edgeFade;
