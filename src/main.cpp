@@ -26,6 +26,7 @@
 #include "InputManager.hpp"
 #include "LightingParams.hpp"
 #include "ShadowMap.hpp"
+#include "PostProcessing.hpp"
 // Should contain world objects (terrain, boxes, axes)
 class Scene {
 public:
@@ -111,7 +112,7 @@ private:
     Terrain terrain;
     AxisXYZ debugAxes;
     Box mybox;
-    CheeseMoon cheeseMoon;  // TODO: Actually replace it with a light source model.
+    CheeseMoon cheeseMoon;
     ArchTree archTree;
     Phoenix phoenix;
     MushroomLightSpawner mushroomSpawner;
@@ -126,14 +127,19 @@ public:
 // we will just put the render code here organisation
 class Renderer {
 public:
-    void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams) {
+    void renderScene(Scene& scene, Camera& camera, const Window& window, float viewDist, const LightingParams& lightingParams,
+                     PostProcessing& postProcess, bool toonEnabled, bool lensFlareEnabled, float time) {
         // First pass: render depth map from light's perspective
         scene.shadowMap.beginRender();
         scene.shadowMap.setLightSpaceMatrices(lightingParams.lightPosition, 1.0f, viewDist, camera.getPosition(), lightingParams.fadeViewDistance, lightingParams.fadeDistance);
         scene.renderDepthPass(lightingParams);
         scene.shadowMap.endRender();
 
-        // Second pass: render scene normally
+        // update post-processing framebuffer size
+        postProcess.resize(window.width, window.height);
+
+        postProcess.beginCapture();
+        
         glViewport(0, 0, (int)window.width, (int)window.height);
         glClearColor(0.7f, 0.4f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,6 +155,16 @@ public:
         
 
         scene.render(projection * view, lightingParams, camera.getPosition(), viewDist);
+
+        postProcess.endCaptureAndRender(
+            toonEnabled,
+            lensFlareEnabled,
+            lightingParams.lightPosition,
+            view,
+            projection,
+            camera.getPosition(),
+            time
+        );
     }
 };
 
@@ -163,6 +179,7 @@ public:
         mainWindow.initialize();
         gui.initialize(mainWindow.window);
         scene.initialize(lightingParams);
+        postProcess.initialize(mainWindow.width, mainWindow.height);
         camera.setFov(45);
         camera.setZNear(10.0f);
         camera.setZFar(10000.0f);
@@ -171,12 +188,16 @@ public:
 
     int run() {
         float viewDist = 100000.0f;
+        float totalTime = 0.0f;
         // UI state
         int octaves = 5;
         float persistence = 0.503f;
         float lacunarity = 2;
         float peakHeight = 1100.0f;
         bool terrainWireframe = false;
+        // Post-processing state
+        bool toonShadingEnabled = false;
+        bool lensFlareEnabled = true;
 
         while (!mainWindow.shouldClose()) {
             timer.tick();
@@ -196,15 +217,17 @@ public:
             // only update scene after constrains enforced. Otherwise skybox jitter
             scene.update(dt, camera);
 
+            totalTime += dt;
 
             // Render scene
-            renderer.renderScene(scene, camera, mainWindow, viewDist, lightingParams);
+            renderer.renderScene(scene, camera, mainWindow, viewDist, lightingParams, 
+                                postProcess, toonShadingEnabled, lensFlareEnabled, totalTime);
 
             // UI
             gui.newFrame();
             if (!mainWindow.cursorLocked()) {
+                ImGui::SetNextWindowSize(ImVec2(300, 180), ImGuiCond_FirstUseEver);
                 ImGui::Begin("Terrain Parameters");
-                ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderInt("Octaves", &octaves, 1, 20);
                 ImGui::SliderFloat("Persistence", &persistence, 0.0f, 1.0f);
                 ImGui::SliderFloat("Lacunarity", &lacunarity, 1, 10);
@@ -212,12 +235,17 @@ public:
                 ImGui::Checkbox("Wireframe Mode", &terrainWireframe);
                 ImGui::End();
 
+                ImGui::SetNextWindowSize(ImVec2(300, 80), ImGuiCond_FirstUseEver);
                 ImGui::Begin("View Parameters");
-                ImGui::SetWindowSize(ImVec2(300, 150));
                 ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 100000.0f);
-                // Use input box instead
-                ImGui::InputFloat3("Light Position", &lightingParams.lightPosition[0]);
-                // Add a + - button to adjust position, 100 units at a time, for lightpos
+                ImGui::End();
+
+                ImGui::SetNextWindowSize(ImVec2(320, 340), ImGuiCond_FirstUseEver);
+                ImGui::Begin("Lighting");
+                
+                // Light Position
+                ImGui::Text("Light Position");
+                ImGui::InputFloat3("Position", &lightingParams.lightPosition[0]);
                 if (ImGui::Button("Light X -")) lightingParams.lightPosition.x -= 100.0f;
                 ImGui::SameLine();
                 if (ImGui::Button("Light X +")) lightingParams.lightPosition.x += 100.0f;
@@ -227,8 +255,50 @@ public:
                 if (ImGui::Button("Light Z -")) lightingParams.lightPosition.z -= 100.0f;
                 ImGui::SameLine();  
                 if (ImGui::Button("Light Z +")) lightingParams.lightPosition.z += 100.0f;
-                // Click button to set light to camera position
                 if (ImGui::Button("Set Light to Camera Position")) lightingParams.lightPosition = camera.getPosition();
+                
+                ImGui::Separator();
+                
+                // Light Color
+                ImGui::Text("Light Color");
+                ImGui::ColorEdit3("Color", &lightingParams.lightColor[0]);
+                
+                // Light Intensity (logarithmic scale for big values)
+                ImGui::Text("Light Intensity");
+                static float intensityLog = log10(lightingParams.lightIntensity.x);
+                if (ImGui::SliderFloat("Intensity (10^x)", &intensityLog, 4.0f, 10.0f)) {
+                    float intensity = pow(10.0f, intensityLog);
+                    lightingParams.lightIntensity = glm::vec3(intensity);
+                }
+                
+                ImGui::Separator();
+                
+                // Fade Parameters
+                ImGui::Text("Object Fade");
+                ImGui::SliderFloat("Fade Start Dist", &lightingParams.fadeViewDistance, 500.0f, 10000.0f);
+                ImGui::SliderFloat("Fade Range", &lightingParams.fadeDistance, 100.0f, 2000.0f);
+                
+                ImGui::End();
+
+                ImGui::SetNextWindowSize(ImVec2(300, 280), ImGuiCond_FirstUseEver);
+                ImGui::Begin("Post-Processing Effects");
+                
+                ImGui::Checkbox("Toon Shading", &toonShadingEnabled);
+                if (toonShadingEnabled) {
+                    ImGui::SliderFloat("Edge Threshold", &postProcess.edgeThreshold, 0.01f, 1.0f);
+                    ImGui::SliderInt("Color Levels", &postProcess.colorLevels, 2, 100);
+                }
+                
+                ImGui::Separator();
+                
+                ImGui::Checkbox("Lens Flare", &lensFlareEnabled);
+                if (lensFlareEnabled) {
+                    ImGui::SliderFloat("Flare Intensity", &postProcess.lensFlareIntensity, 0.0f, 2.0f);
+                    ImGui::SliderFloat("Flare Scale", &postProcess.lensFlareScale, 0.1f, 3.0f);
+                    ImGui::SliderFloat("Streak Length", &postProcess.streakLength, 0.01f, 0.3f);
+                    ImGui::SliderFloat("Halo Radius", &postProcess.haloRadius, 0.05f, 0.5f);
+                    ImGui::SliderInt("Ghost Count", &postProcess.numGhosts, 0, 10);
+                }
                 
                 ImGui::End();
 
@@ -256,6 +326,7 @@ private:
     GUIManager gui;
     Renderer renderer;
     LightingParams lightingParams;
+    PostProcessing postProcess;
 };
 
 int main() {

@@ -108,9 +108,6 @@ class Camera {
          */
         void updateCameraVectors();
 
-        
-        // TODO: Note the use of when vs on prefix
-        // The former is for event handling, the latter is for state updating
 };
 
 #endif // CAMERA_HPP

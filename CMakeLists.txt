@@ -43,6 +43,7 @@ src/Window.cpp
 src/ResourceManager.cpp
 src/utils.cpp
 src/Terrain.cpp
+src/PostProcessing.cpp
 src/main.cpp
 )
 

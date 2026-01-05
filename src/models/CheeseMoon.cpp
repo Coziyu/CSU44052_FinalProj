@@ -37,7 +37,7 @@ void CheeseMoon::initialize(bool isSkinned) {
 void CheeseMoon::update(float dt, glm::vec3 cameraPos) {
     // Rotate the front of the moon to always face the camera
     glm::vec3 direction = glm::normalize(cameraPos - position); // unit delta
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // TODO: Tune until it is the correct start
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
     glm::quat lookQuat = myQuatLookAt(direction, up);
 
 	float baseRotationAngle = 3.14159f;

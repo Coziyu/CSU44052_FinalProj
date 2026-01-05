@@ -171,9 +171,6 @@ void ModelEntity::render(glm::mat4 cameraMatrix, const LightingParams& lightingP
     activeShader->setUniMat4("MVP", mvp);
     activeShader->setUniMat4("Model", modelMatrix);
 	activeShader->setUniBool("isSkinned", isSkinned);
-    // -----------------------------------------------------------------
-    // TODO: Set animation data for linear blend skinning in shader
-    // -----------------------------------------------------------------
     
     if (!skinObjects.empty()) {
         activeShader->setUniMat4Arr("jointMatrices", skinObjects[0].jointMatrices, skinObjects[0].jointMatrices.size());
@@ -262,10 +259,6 @@ std::vector<SkinObject> ModelEntity::prepareSkinning(const tinygltf::Model &mode
 
 		skinObject.globalJointTransforms.resize(skin.joints.size());
 		skinObject.jointMatrices.resize(skin.joints.size());
-
-		// ----------------------------------------------
-		// TODO: your code here to compute joint matrices
-		// ----------------------------------------------
 
 		int rootNodeIndex = skin.joints[0];
 		std::unordered_map<int, glm::mat4> localJointTranforms(model.nodes.size());
@@ -432,9 +425,6 @@ void ModelEntity::updateAnimation(
 
 void ModelEntity::updateSkinning(std::unordered_map<int, glm::mat4> &nodeTransforms) {
 
-	// -------------------------------------------------
-	// TODO: Recompute joint matrices 
-	// -------------------------------------------------
 	SkinObject &skinObject = skinObjects[0];
 	// Assuming we have updated global?? node transforms here (from updateAnimation)
 	tinygltf::Skin &skin = getModel().skins[0];

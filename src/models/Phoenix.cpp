@@ -52,7 +52,7 @@ void Phoenix::update(float dt) {
 	glm::vec3 positiond = center + glm::vec3(radius * cos(dangle), 400.0f * cos(dangle / 5), radius * sin(dangle));
 
 	glm::vec3 direction = glm::normalize(positiond - position); // unit delta
-	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); // TODO: Tune until it is the correct start
+	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	glm::quat lookQuat = myQuatLookAt(direction, up);
 
