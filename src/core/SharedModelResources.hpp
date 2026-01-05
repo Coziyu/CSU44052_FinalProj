@@ -26,7 +26,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
+// [ACKN] ChatGPT helped me a lot in the designing of this class and it's methods in order to solve the MushroomLight rendering issues.
 /**
  * @brief Holds all GPU resources for a model type, loaded once and shared across all instances.
  * 

@@ -18,5 +18,5 @@ void main()
     color = vec4(1.0, 0.3, 1.0, 1.0);
     fragPos = aPos;
     worldPosition = vec3(Model * vec4(aPos, 1.0));
-    fragNorm = mat3(transpose(inverse(Model))) * aNorm;
+    fragNorm = mat3(transpose(inverse(Model))) * aNorm; // [ACKN] ChatGPT suggested fix to this line for terrain lighting issues
 }

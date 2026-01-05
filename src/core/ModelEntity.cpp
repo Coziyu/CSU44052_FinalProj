@@ -140,7 +140,7 @@ void ModelEntity::initialize(bool isSkinned, std::string modelDirectory, std::st
 			// assume textures live next to the glTF file in ../assets/arch_tree/
 			imagePath = modelDirectory + img.uri;
 			std::cout << "Loading texture: " << imagePath << std::endl;
-		} else {
+		} else { // [ACKN] ChatGPT suggested this else statemetn to fix indexing issues with textures.
 			// if embedded or buffer view not supported, skip
 			textures.push_back(nullptr);
 			continue;
@@ -223,7 +223,7 @@ void ModelEntity::renderDepth(std::shared_ptr<Shader> depthShader) {
 	modelMatrix = glm::scale(modelMatrix, scale);
 	modelMatrix = glm::rotate(modelMatrix, rotationAngle, rotationAxis);
 	
-	depthShader->setUniMat4("Model", modelMatrix);
+	depthShader->setUniMat4("Model", modelMatrix); // [ACKN] ChatGPT assisted in fixing a bug where Model matrix was not set for depth rendering.
 	
 	// if this model has skeletal animation, we need to pass the joint transforms
 	if (!skinObjects.empty()) {
@@ -363,6 +363,7 @@ void ModelEntity::updateAnimation(
               		bool interpolated
               	) 
 {
+	// ChatGPT helped debug this function when I was having issues with loading gltf animations
 	// Build per-node TRS (start from node's base TRS values)
 	struct TRS { glm::vec3 T; glm::quat R; glm::vec3 S; };
 	std::vector<TRS> trs(model.nodes.size());
@@ -799,6 +800,7 @@ void ModelEntity::drawMesh(const std::vector<PrimitiveObject> &primitiveObjects,
 		activeShader->setUniVec3("u_EmissiveFactor", emissiveFactor);
 		activeShader->setUniFloat("u_OcclusionStrength", occlusionStrength);
 
+		// [ACKN] ChatGPT wrote this lambda for me to reduce code duplication
 		// Bind and set samplers if present
 		auto setTex = [&](int texIdx, const char* uniformName, const char* flagName){
 			if (texIdx >= 0 && texIdx < (int)activeTextures.size() && activeTextures[texIdx]) {
@@ -850,6 +852,7 @@ void ModelEntity::drawModelNodes(const std::vector<PrimitiveObject>& primitiveOb
 	auto it = transforms.find(nodeIndex);
 	glm::mat4 nodeGlobal = (it != transforms.end()) ? it->second : glm::mat4(1.0f);
 
+	// [ACKN] ChatGPT helped me in the debugging of the model matrix being applied twice for skinned models
 	// for skinned models, the joint matrices already handle the node transform
 	// so we don't want to apply it again or we get double transformation (bad)
 	const tinygltf::Node &node = model.nodes[nodeIndex];

@@ -26,6 +26,7 @@ float getGrayscale(vec3 color) {
     return dot(color, vec3(0.299, 0.587, 0.114));
 }
 
+// [ACKN] ChatGPT generated these two functions for RGB <-> HSV conversion.
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
     vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -96,6 +97,7 @@ vec3 quantizeColor(vec3 color, int levels) {
     return hsv2rgb(hsv);
 }
 
+// [ACKN] ChatGPT assisted in creating this function to increase saturation.
 vec3 saturate(vec3 color, float amount) {
     float gray = getGrayscale(color);
     return mix(vec3(gray), color, 1.0 + amount);

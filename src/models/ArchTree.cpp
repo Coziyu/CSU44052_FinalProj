@@ -13,7 +13,7 @@ bool ArchTree::resourcesInitialized = false;
 
 void ArchTree::loadSharedResources() {
     if (resourcesInitialized) return;
-    
+    // TODO: Better shared logging system??
     std::cout << "[ArchTree] Loading shared resources..." << std::endl;
     if (sharedResources.load(true)) {  // true = prepare skinning data
         resourcesInitialized = true;

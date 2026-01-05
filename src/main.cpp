@@ -47,8 +47,8 @@ public:
 
         terrainShader = std::make_shared<Shader>("../shaders/terrain.vert", "../shaders/terrain.frag");
         terrain.initialize(terrainShader, glm::vec3(0,0,0));
-        debugAxes.initialize();
-        mybox.initialize(glm::vec3(-200, 100, 0), glm::vec3(30,30,30));
+        // debugAxes.initialize();
+        mybox.initialize(glm::vec3(-200, -1000, 0), glm::vec3(30,30,30));
         // Light source indicator - bright yellow box
         cheeseMoon.initialize(false);
         cheeseMoon.setPosition(lightingParams.lightPosition);
@@ -83,7 +83,7 @@ public:
     void updateLightIndicator(const glm::vec3& lightPos) { cheeseMoon.position = lightPos; }
 
     void render(const glm::mat4& vp, const LightingParams& lightingParams, glm::vec3 cameraPos, float farPlane) {
-        debugAxes.render(vp);
+        // debugAxes.render(vp);
         mybox.render(vp);
         cheeseMoon.render(vp, lightingParams, cameraPos, farPlane);  // Visualize light source position
         
@@ -199,6 +199,9 @@ public:
         bool toonShadingEnabled = false;
         bool lensFlareEnabled = true;
 
+        // Physics settings
+        bool pausePhysics = false;
+
         while (!mainWindow.shouldClose()) {
             timer.tick();
             float dt = timer.getDeltaTime();
@@ -215,7 +218,7 @@ public:
             scene.terrUpdateOffset(camera.position);
             camera.setOnGround(scene.terrGroundConstraint(camera.position));
             // only update scene after constrains enforced. Otherwise skybox jitter
-            if (mainWindow.cursorLocked()) {
+            if (!pausePhysics) {
                 // for demo, pause physics
                 scene.update(dt, camera);
             }
@@ -225,7 +228,8 @@ public:
             // Render scene
             renderer.renderScene(scene, camera, mainWindow, viewDist, lightingParams, 
                                 postProcess, toonShadingEnabled, lensFlareEnabled, totalTime);
-
+            
+            // [ACKN] ChatGPT generated the boilerplate code for the IMGUI ui controls
             // UI
             gui.newFrame();
             if (!mainWindow.cursorLocked()) {
@@ -241,6 +245,7 @@ public:
                 ImGui::SetNextWindowSize(ImVec2(300, 80), ImGuiCond_FirstUseEver);
                 ImGui::Begin("View Parameters");
                 ImGui::SliderFloat("View Distance", &viewDist, 500.0f, 100000.0f);
+                ImGui::Checkbox("Pause Physics", &pausePhysics);
                 ImGui::End();
 
                 ImGui::SetNextWindowSize(ImVec2(320, 340), ImGuiCond_FirstUseEver);

@@ -3,7 +3,6 @@
 
 #include "Drawable.hpp"
 #include "Shader.hpp"
-#include "Updateable.hpp"
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -32,7 +31,7 @@ class Entity : public Drawable {
         
 };
 
-class DynamicEntity : public Entity, public Updateable {
+class DynamicEntity : public Entity {
     public:
         virtual void update(float deltaTime) = 0;
 };

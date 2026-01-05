@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "core/Shader.hpp"
-// ChatGPT assisted with creating the class to capture framebuffer for post-processing
+// [ACKN] ChatGPT assisted with creating the class to capture framebuffer for post-processing
 /**
  * @brief Handles post-processing effects including toon shading and lens flare
  */

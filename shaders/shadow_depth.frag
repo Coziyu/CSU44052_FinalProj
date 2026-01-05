@@ -20,7 +20,7 @@ void main()
     
     if (distToCamera > fadeMidpoint) {
         // dont cast shadow yet
-        gl_FragDepth = 1.0;
+        gl_FragDepth = 1.0; // [ACKN] ChatGPT fixed the code here. Initially this line was gl_FragDepth = 0.0;
         return;
     }
     

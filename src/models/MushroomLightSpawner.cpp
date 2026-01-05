@@ -29,6 +29,7 @@ void MushroomLightSpawner::initialize(Terrain* terrain,
     this->spawnProbability = spawnProbability;
     
     allMushrooms.clear();
+    mushroomWorldXZ.clear();
     cellToMushroomIndex.clear();
     evaluatedCells.clear();
     
@@ -38,7 +39,7 @@ void MushroomLightSpawner::initialize(Terrain* terrain,
     std::cout << "[MushroomLightSpawner] Initialized with threshold=" << spawnHeightThreshold 
               << ", cellSize=" << cellSize << ", spawnRadius=" << spawnRadius << std::endl;
 }
-// ChatGPT was referred to generate this method
+// [ACKN] ChatGPT was referred to generate this method
 int64_t MushroomLightSpawner::cellKey(int cellX, int cellZ) const {
     // Combine cell coordinates into a unique 64-bit key
     return static_cast<int64_t>(cellX) + static_cast<int64_t>(cellZ) * 1000003LL;
@@ -73,7 +74,7 @@ bool MushroomLightSpawner::tryActivateCell(int cellX, int cellZ) {
     if (evaluatedCells.count(key) > 0) {
         return false;
     }
-    
+    // [ACKN] ChatGPT fixed a bug here where I forgot to mark evaluated cells.
     // Mark cell as evaluated
     evaluatedCells.insert(key);
     
@@ -110,6 +111,7 @@ bool MushroomLightSpawner::tryActivateCell(int cellX, int cellZ) {
     // Add to pool
     size_t index = allMushrooms.size();
     allMushrooms.push_back(mushroom);
+    mushroomWorldXZ.push_back(glm::vec2(worldX, worldZ));  // Store X/Z for height updates
     cellToMushroomIndex[key] = index;
     
     return true;
@@ -127,6 +129,7 @@ void MushroomLightSpawner::configureMushroom(std::shared_ptr<MushroomLight> mush
     
     mushroom->setPosition(position -  up * 5.0f); 
 
+    // [ACKN] ChatGPT was referred to to fix bugs with rotation alignment, but it still doesn't work perfectly.
     // only rotate if normal differs significantly from up
     float dot = glm::dot(up, normal);
     if (dot < 0.9999f) {
@@ -151,9 +154,22 @@ void MushroomLightSpawner::configureMushroom(std::shared_ptr<MushroomLight> mush
 void MushroomLightSpawner::update(const glm::vec3& cameraPos, float deltaTime) {
     if (!terrain) return;
     
-    // 1. Deactivate mushrooms that are too far from camera
-    for (auto& mushroom : allMushrooms) {
+    // 1. Update active mushroom positions to follow terrain height changes
+    //    and deactivate mushrooms that are too far from camera
+    for (size_t i = 0; i < allMushrooms.size(); ++i) {
+        auto& mushroom = allMushrooms[i];
         if (mushroom->isActive()) {
+            // Update Y position based on current terrain height
+            float worldX = mushroomWorldXZ[i].x;
+            float worldZ = mushroomWorldXZ[i].y;
+            float newHeight = terrain->getHeightAt(worldX, worldZ);
+            glm::vec3 normal = terrain->getNormalAt(worldX, worldZ);
+            
+            // Reconfigure mushroom position and orientation
+            glm::vec3 newPos(worldX, newHeight, worldZ);
+            configureMushroom(mushroom, newPos, normal);
+            
+            // Deactivate if too far
             float dist = glm::length(mushroom->getPosition() - cameraPos);
             if (dist > despawnRadius) {
                 mushroom->setActive(false);
@@ -167,6 +183,7 @@ void MushroomLightSpawner::update(const glm::vec3& cameraPos, float deltaTime) {
     
     int cellRadius = static_cast<int>(std::ceil(spawnRadius / cellSize));
     
+    // [ACKN] ChatGPT fixed off by one error here for me
     for (int dz = -cellRadius; dz <= cellRadius; ++dz) {
         for (int dx = -cellRadius; dx <= cellRadius; ++dx) {
             int cx = cameraCellX + dx;
@@ -188,7 +205,7 @@ void MushroomLightSpawner::update(const glm::vec3& cameraPos, float deltaTime) {
 size_t MushroomLightSpawner::getActiveMushroomCount() const {
     size_t count = 0;
     for (const auto& m : allMushrooms) {
-        if (m->isActive()) count++;
+        if (m->isActive()) count++; // TODO: Keep a counter instead
     }
     return count;
 }
@@ -201,6 +218,7 @@ void MushroomLightSpawner::render(const glm::mat4& vp, const LightingParams& lig
         }
     }
 }
+
 
 void MushroomLightSpawner::renderDepth(std::shared_ptr<Shader> depthShader) {
     for (auto& mushroom : allMushrooms) {

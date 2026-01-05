@@ -8,6 +8,7 @@ uniform mat4 MVP;
 in vec3 fragNorm[];  // normal passed from vertex shader
 in vec3 fragPos[]; // position passed from vertex shader
 
+// [ACKN] ChatGPT assisted in creating this geometry shader to visualize terrain normals when debugging terrain generation.
 void main() {
     vec3 pos = fragPos[0];
     vec3 norm = fragNorm[0];

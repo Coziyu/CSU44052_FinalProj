@@ -24,6 +24,7 @@ void SkyBox::initialize(glm::vec3 position, glm::vec3 scale) {
         for (int v = 1; v < 4; v++) {
             float u = uv_buffer_data[base + v * 2];
             float vCoord = uv_buffer_data[base + v * 2 + 1];
+            // [ACKN] ChatGPT spotted that I mixed up  min and max here
             minU = std::min(minU, u);
             maxU = std::max(maxU, u);
             minV = std::min(minV, vCoord);

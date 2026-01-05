@@ -133,7 +133,7 @@ void PostProcessing::endCaptureAndRender(
             lightNDC.y >= -1.0f && lightNDC.y <= 1.0f &&
             lightNDC.z >= -1.0f && lightNDC.z <= 1.0f) {
             lightScreenPos = glm::vec2(lightNDC.x * 0.5f + 0.5f, lightNDC.y * 0.5f + 0.5f);
-            // ChatGPT assisted with this part of the code to hide len flare when occluded
+            // [ACKN] ChatGPT assisted with this part of the code to hide len flare when occluded
             // check depth occlusion by sampling depth buffer around light pos
             // sample multiple points for smooth transitions
             int sampleCount = 0;

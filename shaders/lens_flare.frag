@@ -29,7 +29,7 @@ float halo(vec2 uv, vec2 lightPos, float radius, float thickness) {
     return smoothstep(radius - thickness, radius, dist) * 
            smoothstep(radius + thickness, radius, dist);
 }
-
+// [ACKN] ChatGPT assisted in the creation of this function. My previous version did not work well.
 // short star streak effect around light
 float streak(vec2 uv, vec2 lightPos, float length, float width) {
     vec2 diff = uv - lightPos;
@@ -99,13 +99,14 @@ vec3 lensFlare(vec2 uv) {
     flareColor += vec3(1.0, 0.95, 0.85) * streakEffect * 0.8;
     
     // chrom aberration on edges
-    float edgeDist = length(uv - screenCenter) * 2.0;
-    vec3 chromatic = vec3(
-        ghost(uv, lightScreenPos + dir * 0.02, 0.1, 2.0),
-        ghost(uv, lightScreenPos, 0.1, 2.0),
-        ghost(uv, lightScreenPos - dir * 0.02, 0.1, 2.0)
-    ) * edgeDist * 5.3;
-    flareColor += chromatic;
+    // [ACKN] ChatGPT suggested this, but didn't work at all. No time to fix
+    // float edgeDist = length(uv - screenCenter) * 2.0;
+    // vec3 chromatic = vec3(
+    //     ghost(uv, lightScreenPos + dir * 0.02, 0.1, 2.0),
+    //     ghost(uv, lightScreenPos, 0.1, 2.0),
+    //     ghost(uv, lightScreenPos - dir * 0.02, 0.1, 2.0)
+    // ) * edgeDist * 5.3;
+    // flareColor += chromatic;
     
     // starburst effect
     float angle = atan(diff.y, diff.x);

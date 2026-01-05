@@ -58,6 +58,7 @@ uniform bool enableShadows;
 uniform bool enableEmissive;
 uniform bool enableToneMapping;
 
+// [ACKN] ChatGPT created this function when I used it to debug wrong colours in my PBR shader.
 // Convert sRGB to linear space
 vec3 sRGBToLinear(vec3 srgb)
 {
@@ -183,6 +184,7 @@ void main()
 
     vec3 color = ambient + Lo + emissiveContrib;
 
+    // [ACKN] ChatGPT assisted in the creation of this alwaysLit if statement
     if (alwaysLit)
     {
         float nl = dot(N, L);
